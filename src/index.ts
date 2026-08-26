@@ -97,14 +97,6 @@ export default {
       if (url.pathname.startsWith("/shot/")) {
         return serveOwnerShot(request, env);
       }
-      if (url.pathname === "/cabinet" || url.pathname === "/cabinet/") {
-        console.log("index: serve cabinet.html");
-        return env.ASSETS.fetch(new Request(new URL("/cabinet.html", url.origin), request));
-      }
-      if (url.pathname === "/signin" || url.pathname === "/signin/") {
-        console.log("index: serve signin.html");
-        return env.ASSETS.fetch(new Request(new URL("/signin.html", url.origin), request));
-      }
       console.log(`index: pass to assets path=${url.pathname}`);
       return env.ASSETS.fetch(request);
     } catch (error) {
