@@ -1,0 +1,46 @@
+name = "seenshot-web"
+main = "src/index.ts"
+compatibility_date = "2026-08-26"
+compatibility_flags = ["nodejs_compat"]
+workers_dev = true
+
+# ─── Ariadne's Thread [AT-0001] ─────────────────────
+# What: Bind seenshot.app as the Worker custom domain
+# Why:  Site moves off GitHub Pages onto the purchased domain
+# Date: 2026-08-26
+# Related: [AT-0002] src/index.ts, infra→backend/wrangler.toml
+# ─────────────────────────────────────────────────────
+[[routes]]
+pattern = "seenshot.app"
+custom_domain = true
+
+[[routes]]
+pattern = "www.seenshot.app"
+custom_domain = true
+
+# ─── Ariadne's Thread [AT-0002] ─────────────────────
+# What: Same D1 as seenshot-api (users, shots, takedowns)
+# Why:  Cabinet must show shots the Mac app already wrote; a second DB would be empty
+# Date: 2026-08-26
+# Related: [AT-0003] src/index.ts:listShots, infra→backend/schema.sql
+# ─────────────────────────────────────────────────────
+[[d1_databases]]
+binding = "DB"
+database_name = "seenshot"
+database_id = "8c102f6f-47bf-40b1-97d1-17ae9aec6e6e"
+
+[[r2_buckets]]
+binding = "BUCKET"
+bucket_name = "seenshot"
+
+[assets]
+directory = "./public"
+binding = "ASSETS"
+run_worker_first = ["/api/*", "/s/*", "/shot/*", "/health", "/cabinet", "/cabinet/", "/signin", "/signin/"]
+
+[vars]
+FIREBASE_PROJECT_ID = "seenshot-app"
+FIREBASE_API_KEY = "AIzaSyCM5aJRTX9I8DXCmtbPqZKugi-m8VfMzco"
+API_BASE_URL = "https://seenshot-api.codemarket.workers.dev"
+R2_PUBLIC_BASE_URL = "https://pub-453d6a740dac45a2b8df5cb9e77df3b2.r2.dev"
+ABUSE_EMAIL = "abuse@seenshot.com"

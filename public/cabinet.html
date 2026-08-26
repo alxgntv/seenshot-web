@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Cabinet — SeenShot</title>
+  <link rel="icon" href="/SeenShot.png">
+  <link rel="stylesheet" href="/css/site.css">
+</head>
+<body>
+  <!-- ─── Ariadne's Thread [AT-0015] ─────────────────────
+    What: Signed-in Pinterest feed of cloud screenshots
+    Why:  Each user sees shots from D1 metadata and their R2 private folder
+    Date: 2026-08-26
+    Related: [AT-0011] public/js/cabinet.js
+  ─────────────────────────────────────────────────────── -->
+  <header class="topnav">
+    <a class="brand" href="/"><img src="/SeenShot.png" alt="">SeenShot</a>
+    <nav>
+      <a href="/cabinet">Cabinet</a>
+      <a id="nav-auth" href="/signin">Sign In</a>
+    </nav>
+  </header>
+  <main class="page">
+    <div class="cabinet-head">
+      <div>
+        <h1>Cabinet</h1>
+        <p id="plan" class="meta">Loading…</p>
+      </div>
+      <button class="download" type="button" id="sign-out">Sign Out</button>
+    </div>
+    <p id="status" class="empty">Loading…</p>
+    <div id="feed" class="feed"></div>
+  </main>
+  <script src="/js/auth.js"></script>
+  <script src="/js/nav.js"></script>
+  <script src="/js/cabinet.js"></script>
+</body>
+</html>

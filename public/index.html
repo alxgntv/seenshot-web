@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SeenShot</title>
+  <meta name="description" content="SeenShot for Mac. Download the latest release.">
+  <link rel="icon" href="/SeenShot.png">
+  <link rel="stylesheet" href="/css/site.css">
+</head>
+<body>
+  <!-- ─── Ariadne's Thread [AT-0014] ─────────────────────
+    What: GitHub Pages landing on seenshot.app with Cabinet / Sign In
+    Why:  Visual stays the Pages microsite; domain moves to the Worker
+    Date: 2026-08-26
+    Related: docs/index.html, [AT-0013] public/js/releases.js
+  ─────────────────────────────────────────────────────── -->
+  <header class="topnav">
+    <a class="brand" href="/"><img src="/SeenShot.png" alt="">SeenShot</a>
+    <nav>
+      <a href="/cabinet">Cabinet</a>
+      <a id="nav-auth" href="/signin">Sign In</a>
+    </nav>
+  </header>
+  <main class="landing">
+    <section class="hero">
+      <img src="/SeenShot.png" alt="SeenShot">
+      <h1>Seen it? <span>Shot it!</span> <span class="send">Send It&nbsp;<span class="send-arrow">↗</span></span></h1>
+      <p class="lede">Fast, Free, Secure. Lightweight screenshot app for Mac with superfunctional annotation.</p>
+      <a id="latest-download" class="download" href="https://github.com/alxgntv/seenshot/releases">Download</a>
+      <p id="latest-meta" class="meta">Loading releases…</p>
+    </section>
+    <img class="hero-shot" src="/hero.png" alt="SeenShot">
+    <h2>Features</h2>
+    <div class="bento">
+      <article class="bento-card wide">
+        <div class="bento-shot-wrap">
+          <img class="bento-shot" src="/bento/01-photo.png" alt="Photo">
+        </div>
+        <h3>Photo</h3>
+        <p>Add a webcam selfie on the screenshot in one click.</p>
+      </article>
+      <article class="bento-card narrow">
+        <div class="bento-shot-wrap">
+          <img class="bento-shot" src="/bento/02-steps.png" alt="Steps">
+        </div>
+        <h3>Steps</h3>
+        <p>Highlight a zone with numbering.</p>
+      </article>
+      <article class="bento-card full">
+        <div class="bento-copy">
+          <h3>Square</h3>
+          <p>Highlight a zone.</p>
+        </div>
+        <div class="bento-shot-wrap">
+          <img class="bento-shot" src="/bento/03-square.png" alt="Square">
+        </div>
+      </article>
+      <article class="bento-card narrow">
+        <div class="bento-shot-wrap">
+          <img class="bento-shot" src="/bento/04-text.png" alt="Text">
+        </div>
+        <h3>Text</h3>
+        <p>Add text on the screenshot.</p>
+      </article>
+      <article class="bento-card wide">
+        <div class="bento-shot-wrap">
+          <img class="bento-shot" src="/bento/05-blur.png" alt="Blur">
+        </div>
+        <h3>Blur</h3>
+        <p>Blur a piece of the screenshot.</p>
+      </article>
+      <article class="bento-card full">
+        <div class="bento-copy">
+          <h3>Background</h3>
+          <p>Add a background under the screenshot.</p>
+        </div>
+        <div class="bento-shot-wrap">
+          <img class="bento-shot" src="/bento/06-background.png" alt="Background">
+        </div>
+      </article>
+      <article class="bento-card wide">
+        <div class="bento-shot-wrap">
+          <img class="bento-shot" src="/bento/07-color.png" alt="Color">
+        </div>
+        <h3>Color</h3>
+        <p>Color picker for the last annotation.</p>
+      </article>
+      <article class="bento-card narrow">
+        <div class="bento-shot-wrap">
+          <img class="bento-shot" src="/bento/08-share.png" alt="Share">
+        </div>
+        <h3>Share</h3>
+        <p>Share the screenshot on the internet.</p>
+      </article>
+      <article class="bento-card full">
+        <div class="bento-copy">
+          <h3>Embed</h3>
+          <p>Add the screenshot to a website as an image.</p>
+        </div>
+        <div class="bento-shot-wrap">
+          <img class="bento-shot" src="/bento/09-embed.png" alt="Embed">
+        </div>
+      </article>
+      <article class="bento-card full">
+        <div class="bento-copy">
+          <h3>Arrow &amp; Line</h3>
+          <p>Draw arrows and lines on the screenshot.</p>
+        </div>
+        <div class="bento-shot-wrap">
+          <img class="bento-shot" src="/bento/10-arrows.png" alt="Arrow and Line">
+        </div>
+      </article>
+    </div>
+    <h2>Releases</h2>
+    <div id="releases"></div>
+  </main>
+  <script src="/js/auth.js"></script>
+  <script src="/js/nav.js"></script>
+  <script src="/js/releases.js"></script>
+</body>
+</html>
