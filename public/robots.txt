@@ -1,6 +1,7 @@
 User-agent: *
 Allow: /
 Disallow: /cabinet
+Disallow: /space
 Disallow: /signin
 Disallow: /shot/
 Disallow: /api/

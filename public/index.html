@@ -10,15 +10,20 @@
 </head>
 <body>
   <!-- ─── Ariadne's Thread [AT-0014] ─────────────────────
-    What: GitHub Pages landing on seenshot.app with Cabinet / Sign In
+    What: GitHub Pages landing on seenshot.app with Sign In
     Why:  Visual stays the Pages microsite; domain moves to the Worker
     Date: 2026-08-26
     Related: docs/index.html, [AT-0013] public/js/releases.js
   ─────────────────────────────────────────────────────── -->
   <header class="topnav">
+    <!-- ─── Ariadne's Thread [AT-0021] ─────────────────────
+      What: Remove Cabinet from the top nav
+      Why:  Header should only show Sign In
+      Date: 2026-08-27
+      Related: [AT-0009] public/js/nav.js, [AT-0014] public/index.html
+    ─────────────────────────────────────────────────────── -->
     <a class="brand" href="/"><img src="/SeenShot.png" alt="">SeenShot</a>
     <nav>
-      <a href="/cabinet">Cabinet</a>
       <a id="nav-auth" href="/signin">Sign In</a>
     </nav>
   </header>

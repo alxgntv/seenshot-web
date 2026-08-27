@@ -27,7 +27,13 @@ export function sharePage(opts: {
   const abuseUrl = escapeHtml(opts.abuseUrl);
   const abuseEmail = escapeHtml(opts.abuseEmail);
   if (opts.missing) {
-    console.log(`html: share missing publicId=${opts.publicId}`);
+    // ─── Ariadne's Thread [AT-0017] ─────────────────────
+    // What: Gone share page is a black screen with no Cabinet/Sign In nav
+    // Why:  Dead links should not look like the product chrome
+    // Date: 2026-08-27
+    // Related: [AT-0004] src/html.ts:sharePage, [AT-0006] src/index.ts:serveShare
+    // ─────────────────────────────────────────────────────
+    console.log(`html: share missing publicId=${opts.publicId} black gone page`);
     return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -36,23 +42,30 @@ export function sharePage(opts: {
   <meta name="robots" content="noindex">
   <title>SeenShot</title>
   <link rel="icon" href="/SeenShot.png">
-  <link rel="stylesheet" href="/css/site.css">
+  <style>
+    html, body { margin: 0; min-height: 100%; background: #000; color: #fff; }
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: ui-rounded, "SF Pro Rounded", "Avenir Next", sans-serif;
+    }
+    p { margin: 0; padding: 24px; text-align: center; opacity: 0.7; }
+  </style>
 </head>
 <body>
-  <header class="topnav">
-    <a class="brand" href="/"><img src="/SeenShot.png" alt="">SeenShot</a>
-    <nav>
-      <a href="/cabinet">Cabinet</a>
-      <a href="/signin">Sign In</a>
-    </nav>
-  </header>
-  <main class="page">
-    <p class="empty">This screenshot is gone. The link is expired, unpublished, or was removed.</p>
-  </main>
+  <p>This screenshot is gone. The link is expired, unpublished, or was removed.</p>
 </body>
 </html>`;
   }
-  console.log(`html: share page publicId=${opts.publicId} imageUrl=${opts.imageUrl}`);
+  // ─── Ariadne's Thread [AT-0019] ─────────────────────
+  // What: Share screenshot is centered and uses 80% of the viewport
+  // Why:  Public /screenshot/{id} is a black viewer, not the product chrome
+  // Date: 2026-08-27
+  // Related: [AT-0017] src/html.ts:sharePage, [AT-0006] src/index.ts:serveShare
+  // ─────────────────────────────────────────────────────
+  console.log(`html: share page publicId=${opts.publicId} imageUrl=${opts.imageUrl} pageUrl=${opts.pageUrl}`);
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -65,37 +78,29 @@ export function sharePage(opts: {
   <meta name="twitter:image" content="${imageUrl}">
   <title>SeenShot</title>
   <link rel="icon" href="/SeenShot.png">
-  <link rel="stylesheet" href="/css/site.css">
+  <style>
+    html, body { margin: 0; height: 100%; background: #000; color: #fff; }
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    img {
+      display: block;
+      max-width: 80%;
+      max-height: 80%;
+      width: auto;
+      height: auto;
+      object-fit: contain;
+    }
+  </style>
 </head>
 <body>
-  <header class="topnav">
-    <a class="brand" href="/"><img src="/SeenShot.png" alt="">SeenShot</a>
-    <nav>
-      <a href="/cabinet">Cabinet</a>
-      <a href="/signin">Sign In</a>
-    </nav>
-  </header>
-  <main class="page share-page">
-    <img class="share-shot" src="${imageUrl}" alt="Screenshot">
-    <p class="share-actions">
-      <button class="download" type="button" id="copy-link">Copy link</button>
-      <a class="text-link" href="/">Get SeenShot</a>
-    </p>
-    <p class="meta">Report · <a href="${abuseUrl}">${id}</a> · ${abuseEmail}</p>
-  </main>
+  <img src="${imageUrl}" alt="Screenshot">
+  <a href="${abuseUrl}" style="position:fixed;bottom:16px;left:50%;transform:translateX(-50%);color:#666;font-size:12px;font-family:ui-rounded,'SF Pro Rounded','Avenir Next',sans-serif;text-decoration:none">Report</a>
   <script>
-    const pageUrl = "${pageUrl}";
-    const button = document.getElementById("copy-link");
-    console.log("SeenShot share: publicId=${id} pageUrl=" + pageUrl);
-    button.addEventListener("click", function () {
-      navigator.clipboard.writeText(pageUrl).then(function () {
-        button.textContent = "Copied";
-        console.log("SeenShot share: copied pageUrl=" + pageUrl);
-      }).catch(function (error) {
-        console.error("SeenShot share: copy failed", error);
-        button.textContent = "Copy failed";
-      });
-    });
+    console.log("SeenShot share: publicId=${id} imageUrl=${imageUrl} pageUrl=${pageUrl} abuse=${abuseUrl} email=${abuseEmail}");
   </script>
 </body>
 </html>`;
@@ -123,7 +128,6 @@ export function ownerShotPage(shotId: string): string {
   <header class="topnav">
     <a class="brand" href="/"><img src="/SeenShot.png" alt="">SeenShot</a>
     <nav>
-      <a href="/cabinet">Cabinet</a>
       <a id="nav-auth" href="/signin">Sign In</a>
     </nav>
   </header>
@@ -132,7 +136,7 @@ export function ownerShotPage(shotId: string): string {
     <img class="share-shot" id="shot" alt="Screenshot" hidden>
     <p class="share-actions">
       <button class="download" type="button" id="copy-link">Copy link</button>
-      <a class="text-link" href="/cabinet">Back to cabinet</a>
+      <a class="text-link" href="/space/">Back to space</a>
     </p>
   </main>
   <script src="/js/auth.js"></script>

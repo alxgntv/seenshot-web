@@ -1,5 +1,5 @@
 /* ─── Ariadne's Thread [AT-0010] ─────────────────────
-   What: Sign In / Create account / reset / email link on Identity Toolkit
+   What: Sign In / Create account / reset on Identity Toolkit
    Why:  Same account as the Mac app Settings panel
    Date: 2026-08-26
    Related: [AT-0008] auth.js, app→AccountSignInPanel.cpp
@@ -7,14 +7,18 @@
 (function () {
   const emailInput = document.getElementById("email");
   const passwordInput = document.getElementById("password");
+  const passwordField = document.getElementById("password-field");
+  const generateBtn = document.getElementById("generate-password");
+  const togglePassword = document.getElementById("toggle-password");
   const status = document.getElementById("status");
-  const buttons = [
-    document.getElementById("sign-in"),
-    document.getElementById("create"),
-    document.getElementById("forgot"),
-    document.getElementById("email-link"),
-  ];
+  const title = document.getElementById("form-title");
+  const forgot = document.getElementById("forgot");
+  const primary = document.getElementById("primary");
+  const switchBtn = document.getElementById("switch");
+  const buttons = [forgot, primary, switchBtn, generateBtn, togglePassword];
   let inFlight = false;
+  let mode = "signin";
+  let passwordVisible = false;
 
   function setBusy(busy) {
     inFlight = busy;
@@ -23,13 +27,13 @@
         button.disabled = busy;
       }
     });
-    console.log("SeenShot signin: busy=" + busy);
+    console.log("SeenShot signin: busy=" + busy + " mode=" + mode);
   }
 
   function show(code, isError) {
     status.textContent = SeenShotAuth.messageFor(code);
     status.className = isError ? "error" : "empty";
-    console.log("SeenShot signin: status code=" + code + " error=" + Boolean(isError));
+    console.log("SeenShot signin: status code=" + code + " error=" + Boolean(isError) + " mode=" + mode);
   }
 
   function requireEmail() {
@@ -47,7 +51,7 @@
 
   async function run(job) {
     if (inFlight) {
-      console.warn("SeenShot signin: ignored, request already in flight");
+      console.warn("SeenShot signin: ignored, request already in flight mode=" + mode);
       return;
     }
     setBusy(true);
@@ -55,14 +59,159 @@
       await job();
     } catch (error) {
       const code = error && error.message ? error.message : "AUTH_REFRESH_FAILED";
-      console.error("SeenShot signin: failed code=" + code, error);
+      console.error("SeenShot signin: failed code=" + code + " mode=" + mode, error);
       show(code, true);
     } finally {
       setBusy(false);
     }
   }
 
-  document.getElementById("sign-in").addEventListener("click", function () {
+  function randomInt(max) {
+    const cap = 0x100000000;
+    const limit = cap - (cap % max);
+    const buf = new Uint32Array(1);
+    let value = 0;
+    do {
+      crypto.getRandomValues(buf);
+      value = buf[0];
+    } while (value >= limit);
+    return value % max;
+  }
+
+  // ─── Ariadne's Thread [AT-0031] ─────────────────────
+  // What: Fill the password field with 12 CSPRNG letters, numbers, and symbols
+  // Why:  Create account asked for Generate password inside the same input
+  // Date: 2026-08-27
+  // Related: [AT-0028] public/js/signin.js:setMode, [AT-0016] public/signin.html
+  // ─────────────────────────────────────────────────────
+  function generatePassword() {
+    const letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    const numbers = "0123456789";
+    const symbols = "!@#$%^&*_-=";
+    const all = letters + numbers + symbols;
+    const chars = [
+      letters.charAt(randomInt(letters.length)),
+      numbers.charAt(randomInt(numbers.length)),
+      symbols.charAt(randomInt(symbols.length)),
+    ];
+    for (let i = chars.length; i < 12; i += 1) {
+      chars.push(all.charAt(randomInt(all.length)));
+    }
+    for (let i = chars.length - 1; i > 0; i -= 1) {
+      const j = randomInt(i + 1);
+      const tmp = chars[i];
+      chars[i] = chars[j];
+      chars[j] = tmp;
+    }
+    const password = chars.join("");
+    console.log(
+      "SeenShot signin: generated password chars=" + password.length +
+        " letters=" + letters.length +
+        " numbers=" + numbers.length +
+        " symbols=" + symbols.length
+    );
+    return password;
+  }
+
+  // ─── Ariadne's Thread [AT-0032] ─────────────────────
+  // What: Toggle the password input between password and text
+  // Why:  Show password with an eye; the control stays a password field
+  // Date: 2026-08-27
+  // Related: [AT-0031] public/js/signin.js:generatePassword, [AT-0028] public/js/signin.js:setMode
+  // ─────────────────────────────────────────────────────
+  function setPasswordVisible(visible) {
+    passwordVisible = Boolean(visible);
+    passwordInput.type = passwordVisible ? "text" : "password";
+    togglePassword.setAttribute("aria-pressed", passwordVisible ? "true" : "false");
+    togglePassword.setAttribute("aria-label", passwordVisible ? "Hide password" : "Show password");
+    console.log(
+      "SeenShot signin: password visible=" + passwordVisible +
+        " type=" + passwordInput.type +
+        " mode=" + mode
+    );
+  }
+
+  // ─── Ariadne's Thread [AT-0028] ─────────────────────
+  // What: Toggle Sign In vs Create account on the same fields
+  // Why:  Create account was a second submit on the sign-in form
+  // Date: 2026-08-27
+  // Related: [AT-0016] public/signin.html, [AT-0008] public/js/auth.js:signUpEmail
+  // ─────────────────────────────────────────────────────
+  function setMode(next) {
+    mode = next;
+    status.textContent = "";
+    status.className = "meta";
+    emailInput.type = "email";
+    emailInput.autocomplete = "email";
+    passwordInput.name = "password";
+    if (mode === "create") {
+      title.textContent = "Create account";
+      document.title = "Create account — SeenShot";
+      primary.textContent = "Create account";
+      switchBtn.textContent = "Sign In";
+      forgot.hidden = true;
+      generateBtn.hidden = false;
+      passwordField.classList.add("has-generate");
+      passwordInput.autocomplete = "new-password";
+    } else {
+      title.textContent = "Sign In";
+      document.title = "Sign In — SeenShot";
+      primary.textContent = "Sign In";
+      switchBtn.textContent = "Create account";
+      forgot.hidden = false;
+      generateBtn.hidden = true;
+      passwordField.classList.remove("has-generate");
+      passwordInput.autocomplete = "current-password";
+    }
+    setPasswordVisible(false);
+    console.log(
+      "SeenShot signin: setMode=" + mode +
+        " title=" + title.textContent +
+        " primary=" + primary.textContent +
+        " switch=" + switchBtn.textContent +
+        " forgotHidden=" + forgot.hidden +
+        " generateHidden=" + generateBtn.hidden +
+        " emailType=" + emailInput.type +
+        " passwordType=" + passwordInput.type
+    );
+  }
+
+  // ─── Ariadne's Thread [AT-0044] ─────────────────────
+  // What: Honor same-origin next=/oauth/authorize after sign-in
+  // Why:  Mac PKCE lands on /signin then must return to consent, not /space/
+  // Date: 2026-08-27
+  // Related: [AT-0039] src/index.ts:handleAuthorizeGet, [AT-0010] public/js/signin.js
+  // ─────────────────────────────────────────────────────
+  function afterSignInPath() {
+    const raw = new URLSearchParams(location.search).get("next") || "";
+    if (!raw) {
+      return "/space/";
+    }
+    let path = raw;
+    try {
+      if (raw.charAt(0) === "/") {
+        path = raw;
+      } else {
+        const parsed = new URL(raw, location.origin);
+        if (parsed.origin !== location.origin) {
+          console.warn("SeenShot signin: next rejected off-origin");
+          return "/space/";
+        }
+        path = parsed.pathname + parsed.search;
+      }
+    } catch (error) {
+      console.warn("SeenShot signin: next parse failed", error);
+      return "/space/";
+    }
+    if (path !== "/oauth/authorize" && path.indexOf("/oauth/authorize?") !== 0) {
+      console.warn("SeenShot signin: next rejected path=" + path);
+      return "/space/";
+    }
+    console.log("SeenShot signin: next oauth authorize chars=" + path.length);
+    return path;
+  }
+
+  primary.addEventListener("click", function () {
     run(async function () {
       const email = requireEmail();
       if (!email) {
@@ -73,30 +222,52 @@
         show("AUTH_PASSWORD_REQUIRED", true);
         return;
       }
-      await SeenShotAuth.signInEmail(email, password);
-      console.log("SeenShot signin: signed in, go cabinet");
-      location.href = "/cabinet";
+      if (mode === "create") {
+        console.log("SeenShot signin: submit create emailChars=" + email.length);
+        await SeenShotAuth.signUpEmail(email, password);
+        console.log("SeenShot signin: created account");
+      } else {
+        console.log("SeenShot signin: submit signin emailChars=" + email.length);
+        await SeenShotAuth.signInEmail(email, password);
+        console.log("SeenShot signin: signed in");
+      }
+      location.href = afterSignInPath();
     });
   });
 
-  document.getElementById("create").addEventListener("click", function () {
-    run(async function () {
-      const email = requireEmail();
-      if (!email) {
-        return;
-      }
-      const password = passwordInput.value;
-      if (!password) {
-        show("AUTH_PASSWORD_REQUIRED", true);
-        return;
-      }
-      await SeenShotAuth.signUpEmail(email, password);
-      console.log("SeenShot signin: created account, go cabinet");
-      location.href = "/cabinet";
-    });
+  switchBtn.addEventListener("click", function () {
+    if (inFlight) {
+      console.warn("SeenShot signin: switch ignored, request in flight");
+      return;
+    }
+    setMode(mode === "create" ? "signin" : "create");
   });
 
-  document.getElementById("forgot").addEventListener("click", function () {
+  generateBtn.addEventListener("click", function () {
+    if (inFlight) {
+      console.warn("SeenShot signin: generate ignored, request in flight");
+      return;
+    }
+    if (mode !== "create") {
+      console.warn("SeenShot signin: generate ignored, mode=" + mode);
+      return;
+    }
+    passwordInput.value = generatePassword();
+    setPasswordVisible(true);
+    passwordInput.focus();
+    passwordInput.select();
+    console.log("SeenShot signin: password field filled from generate chars=" + passwordInput.value.length);
+  });
+
+  togglePassword.addEventListener("click", function () {
+    if (inFlight) {
+      console.warn("SeenShot signin: toggle password ignored, request in flight");
+      return;
+    }
+    setPasswordVisible(!passwordVisible);
+  });
+
+  forgot.addEventListener("click", function () {
     run(async function () {
       const email = requireEmail();
       if (!email) {
@@ -107,30 +278,24 @@
     });
   });
 
-  document.getElementById("email-link").addEventListener("click", function () {
-    run(async function () {
-      const email = requireEmail();
-      if (!email) {
-        return;
-      }
-      await SeenShotAuth.sendEmailLink(email);
-      show("AUTH_CHECK_EMAIL", false);
-    });
-  });
-
   document.querySelector(".auth-form").addEventListener("keydown", function (event) {
     if (event.key === "Enter" && !inFlight) {
+      if (event.target === generateBtn || event.target === togglePassword || togglePassword.contains(event.target)) {
+        console.log("SeenShot signin: enter on password control, skip submit");
+        return;
+      }
       event.preventDefault();
-      document.getElementById("sign-in").click();
+      console.log("SeenShot signin: enter submits mode=" + mode);
+      primary.click();
     }
   });
 
   async function finishEmailLink() {
     const params = new URLSearchParams(location.search);
     const oobCode = params.get("oobCode");
-    const mode = params.get("mode");
-    console.log("SeenShot signin: query mode=" + mode + " oob=" + Boolean(oobCode));
-    if (!oobCode || (mode && mode !== "signIn")) {
+    const modeParam = params.get("mode");
+    console.log("SeenShot signin: query mode=" + modeParam + " oob=" + Boolean(oobCode));
+    if (!oobCode || (modeParam && modeParam !== "signIn")) {
       return;
     }
     const email = localStorage.getItem(SeenShotAuth.STORAGE.pendingEmail) || emailInput.value.trim();
@@ -140,16 +305,18 @@
     }
     await run(async function () {
       await SeenShotAuth.signInEmailLink(email, oobCode);
-      console.log("SeenShot signin: email link done, go cabinet");
-      location.href = "/cabinet";
+      console.log("SeenShot signin: email link done");
+      location.href = afterSignInPath();
     });
   }
 
   const session = SeenShotAuth.readSession();
   if (session.refreshToken) {
-    console.log("SeenShot signin: already signed in, go cabinet");
-    location.href = "/cabinet";
+    const next = afterSignInPath();
+    console.log("SeenShot signin: already signed in, go " + next);
+    location.href = next;
     return;
   }
+  setMode("signin");
   finishEmailLink();
 })();

@@ -111,16 +111,29 @@
     const list = document.getElementById("releases");
     const latestLink = document.getElementById("latest-download");
     const latestMeta = document.getElementById("latest-meta");
+    if (!latestLink) {
+      console.warn("SeenShot site: no latest-download link");
+      return;
+    }
     if (published.length === 0) {
-      list.innerHTML = '<p class="empty">No published releases yet. See <a href="' + FALLBACK + '">GitHub Releases</a>.</p>';
-      latestMeta.textContent = "No published release yet.";
+      if (list) {
+        list.innerHTML = '<p class="empty">No published releases yet. See <a href="' + FALLBACK + '">GitHub Releases</a>.</p>';
+      }
+      if (latestMeta) {
+        latestMeta.textContent = "No published release yet.";
+      }
+      latestLink.href = FALLBACK;
+      latestLink.textContent = "Download";
+      console.warn("SeenShot site: no published releases, fallback GitHub");
       return;
     }
     const latest = published[0];
     const previous = published.slice(1);
     const latestAsset = downloadAsset(latest);
     const version = latest.tag_name || latest.name || "latest";
-    latestMeta.textContent = "stable version: " + version;
+    if (latestMeta) {
+      latestMeta.textContent = "stable version: " + version;
+    }
     console.log(
       "SeenShot site: stable version=" + version +
         " prerelease=" + Boolean(latest.prerelease) +
@@ -134,6 +147,10 @@
       latestLink.href = latest.html_url || FALLBACK;
       latestLink.textContent = "Open " + version;
       console.warn("SeenShot site: latest release has no dmg asset tag=" + version);
+    }
+    if (!list) {
+      console.log("SeenShot site: latest download only, skip release list");
+      return;
     }
     list.innerHTML = "";
     list.appendChild(releaseCard(latest));
@@ -165,9 +182,20 @@
 
   function showError(message) {
     console.error("SeenShot site: " + message);
-    document.getElementById("latest-meta").textContent = "Could not load releases.";
-    document.getElementById("releases").innerHTML =
-      '<p class="error">' + message + ' <a href="' + FALLBACK + '">GitHub Releases</a></p>';
+    const latestMeta = document.getElementById("latest-meta");
+    const list = document.getElementById("releases");
+    const latestLink = document.getElementById("latest-download");
+    if (latestMeta) {
+      latestMeta.textContent = "Could not load releases.";
+    }
+    if (list) {
+      list.innerHTML =
+        '<p class="error">' + message + ' <a href="' + FALLBACK + '">GitHub Releases</a></p>';
+    }
+    if (latestLink) {
+      latestLink.href = FALLBACK;
+      latestLink.textContent = "Download";
+    }
   }
 
   fetch(RELEASES_URL, {

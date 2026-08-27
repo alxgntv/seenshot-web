@@ -4,37 +4,48 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex">
-  <title>Cabinet — SeenShot</title>
+  <title>SeenShot</title>
   <link rel="icon" href="/SeenShot.png">
   <link rel="stylesheet" href="/css/site.css">
 </head>
 <body>
-  <!-- ─── Ariadne's Thread [AT-0015] ─────────────────────
-    What: Signed-in Pinterest feed of cloud screenshots
-    Why:  Each user sees shots from D1 metadata and their R2 private folder
-    Date: 2026-08-26
-    Related: [AT-0011] public/js/cabinet.js
+  <!-- ─── Ariadne's Thread [AT-0023] ─────────────────────
+    What: /cabinet checks Firebase session, then /space/ or /signin
+    Why:  Logged-in users go to their space; signed-out users sign in
+    Date: 2026-08-27
+    Related: [AT-0022] public/space/index.html, [AT-0008] public/js/auth.js
   ─────────────────────────────────────────────────────── -->
-  <header class="topnav">
-    <a class="brand" href="/"><img src="/SeenShot.png" alt="">SeenShot</a>
-    <nav>
-      <a href="/cabinet">Cabinet</a>
-      <a id="nav-auth" href="/signin">Sign In</a>
-    </nav>
-  </header>
-  <main class="page">
-    <div class="cabinet-head">
-      <div>
-        <h1>Cabinet</h1>
-        <p id="plan" class="meta">Loading…</p>
-      </div>
-      <button class="download" type="button" id="sign-out">Sign Out</button>
-    </div>
-    <p id="status" class="empty">Loading…</p>
-    <div id="feed" class="feed"></div>
-  </main>
+  <p class="meta">Loading…</p>
   <script src="/js/auth.js"></script>
-  <script src="/js/nav.js"></script>
-  <script src="/js/cabinet.js"></script>
+  <script>
+    (function () {
+      let gateInFlight = false;
+      async function gate() {
+        if (gateInFlight) {
+          console.warn("SeenShot cabinet: gate ignored, already in flight");
+          return;
+        }
+        gateInFlight = true;
+        const session = SeenShotAuth.readSession();
+        console.log(
+          "SeenShot cabinet: gate hasRefresh=" + Boolean(session.refreshToken) +
+            " uid=" + (session.uid || "")
+        );
+        if (session.refreshToken) {
+          try {
+            await SeenShotAuth.ensureIdToken();
+            console.log("SeenShot cabinet: signed in, go /space/");
+            location.replace("/space/");
+            return;
+          } catch (error) {
+            console.warn("SeenShot cabinet: session failed", error);
+          }
+        }
+        console.log("SeenShot cabinet: signed out, go /signin");
+        location.replace("/signin");
+      }
+      gate();
+    })();
+  </script>
 </body>
 </html>

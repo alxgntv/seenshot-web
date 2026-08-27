@@ -1,6 +1,6 @@
 /* ─── Ariadne's Thread [AT-0012] ─────────────────────
    What: Owner shot page loads the PNG with Bearer and copies the share URL
-   Why:  Private shots stay behind Firebase; public shots copy /s/{id}
+   Why:  Private shots stay behind Firebase; public shots copy /screenshot/{id}
    Date: 2026-08-26
    Related: [AT-0005] src/html.ts:ownerShotPage, [AT-0008] auth.js
 ─────────────────────────────────────────────────────── */

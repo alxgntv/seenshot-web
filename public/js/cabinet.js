@@ -6,11 +6,18 @@
 ─────────────────────────────────────────────────────── */
 (function () {
   const feed = document.getElementById("feed");
-  const status = document.getElementById("status");
-  const plan = document.getElementById("plan");
-  const signOut = document.getElementById("sign-out");
+  const emptyWrap = document.getElementById("empty-wrap");
+  const latestDownload = document.getElementById("latest-download");
   let loadInFlight = false;
   let blobUrls = [];
+
+  function setEmptyVisible(visible) {
+    emptyWrap.hidden = !visible;
+    if (latestDownload) {
+      latestDownload.hidden = !visible;
+    }
+    console.log("SeenShot cabinet: emptyVisible=" + visible + " downloadHidden=" + (latestDownload ? latestDownload.hidden : "none"));
+  }
 
   function revokeBlobs() {
     blobUrls.forEach(function (url) {
@@ -18,14 +25,6 @@
     });
     console.log("SeenShot cabinet: revoked blobUrls=" + blobUrls.length);
     blobUrls = [];
-  }
-
-  function showEmpty(text, isError) {
-    feed.innerHTML = "";
-    status.hidden = false;
-    status.className = isError ? "error" : "empty";
-    status.textContent = text;
-    console.log("SeenShot cabinet: empty error=" + Boolean(isError) + " text=" + text);
   }
 
   async function loadImage(shot) {
@@ -50,10 +49,11 @@
     revokeBlobs();
     feed.innerHTML = "";
     if (shots.length === 0) {
-      showEmpty("No cloud screenshots yet. Capture in SeenShot for Mac and save to the cloud.", false);
+      setEmptyVisible(true);
+      console.log("SeenShot cabinet: empty feed, show capture hint");
       return;
     }
-    status.hidden = true;
+    setEmptyVisible(false);
     console.log("SeenShot cabinet: render count=" + shots.length);
     for (let i = 0; i < shots.length; i += 1) {
       const shot = shots[i];
@@ -89,15 +89,6 @@
     loadInFlight = true;
     try {
       await SeenShotAuth.ensureIdToken();
-      const meResponse = await SeenShotAuth.api("/api/me");
-      if (meResponse.ok) {
-        const me = await meResponse.json();
-        const usedMb = (Number(me.usedBytes || 0) / (1024 * 1024)).toFixed(2);
-        plan.textContent = (me.plan || "free") + " · " + usedMb + " MB";
-        console.log("SeenShot cabinet: me plan=" + me.plan + " usedBytes=" + me.usedBytes);
-      } else {
-        console.warn("SeenShot cabinet: me status=" + meResponse.status);
-      }
       const response = await SeenShotAuth.api("/api/shots");
       if (response.status === 401) {
         console.warn("SeenShot cabinet: unauthorized, go signin");
@@ -105,7 +96,10 @@
         return;
       }
       if (!response.ok) {
-        throw new Error("UNKNOWN_ERROR");
+        console.warn("SeenShot cabinet: shots status=" + response.status + " no status banner");
+        feed.innerHTML = "";
+        setEmptyVisible(false);
+        return;
       }
       const data = await response.json();
       const shots = Array.isArray(data.shots) ? data.shots : [];
@@ -114,21 +108,17 @@
     } catch (error) {
       const code = error && error.message ? error.message : "UNKNOWN_ERROR";
       console.error("SeenShot cabinet: load failed code=" + code, error);
-      if (code === "STORAGE_NEED_SIGN_IN" || code === "AUTH_REFRESH_FAILED") {
+      if (code === "STORAGE_NEED_SIGN_IN" || code === "AUTH_REFRESH_FAILED" || code === "AUTH_DISPOSABLE_EMAIL") {
         location.href = "/signin";
         return;
       }
-      showEmpty("Could not load your screenshots. Try again.", true);
+      feed.innerHTML = "";
+      setEmptyVisible(false);
+      console.warn("SeenShot cabinet: load failed, empty hint hidden");
     } finally {
       loadInFlight = false;
     }
   }
-
-  signOut.addEventListener("click", function () {
-    console.log("SeenShot cabinet: sign out");
-    SeenShotAuth.clearSession();
-    location.href = "/signin";
-  });
 
   window.addEventListener("beforeunload", revokeBlobs);
   load();

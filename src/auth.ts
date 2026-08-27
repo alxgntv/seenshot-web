@@ -1,4 +1,5 @@
 import { createRemoteJWKSet, jwtVerify } from "jose";
+import { isDisposableEmail } from "./disposableEmail";
 
 // ─── Ariadne's Thread [AT-0003] ─────────────────────
 // What: Verify Firebase ID tokens from Bearer or seenshot_id cookie
@@ -11,7 +12,12 @@ const JWKS = createRemoteJWKSet(
   new URL("https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com"),
 );
 
-export async function verifyFirebaseToken(token: string, projectId: string): Promise<string> {
+export type FirebaseUser = {
+  uid: string;
+  email: string;
+};
+
+export async function verifyFirebaseUser(token: string, projectId: string): Promise<FirebaseUser> {
   const { payload } = await jwtVerify(token, JWKS, {
     issuer: `https://securetoken.google.com/${projectId}`,
     audience: projectId,
@@ -21,8 +27,24 @@ export async function verifyFirebaseToken(token: string, projectId: string): Pro
     console.warn("auth: token has no uid");
     throw new Error("STORAGE_NEED_SIGN_IN");
   }
-  console.log(`auth: verified uid=${uid} exp=${payload.exp ?? "none"}`);
-  return uid;
+  const email = typeof payload.email === "string" ? payload.email : "";
+  console.log(`auth: verified uid=${uid} exp=${payload.exp ?? "none"} emailChars=${email.length}`);
+  // ─── Ariadne's Thread [AT-0030] ─────────────────────
+  // What: Reject ID tokens whose email domain is on the official blocklist
+  // Why:  /api/me and /api/shots must not serve throwaway-mail accounts
+  // Date: 2026-08-27
+  // Related: [AT-0029] src/disposableEmail.ts:isDisposableEmail, [AT-0003] src/auth.ts:verifyFirebaseToken
+  // ─────────────────────────────────────────────────────
+  if (email && isDisposableEmail(email)) {
+    console.warn(`auth: disposable email uid=${uid} emailChars=${email.length}`);
+    throw new Error("AUTH_DISPOSABLE_EMAIL");
+  }
+  return { uid, email };
+}
+
+export async function verifyFirebaseToken(token: string, projectId: string): Promise<string> {
+  const user = await verifyFirebaseUser(token, projectId);
+  return user.uid;
 }
 
 function cookieToken(request: Request): string | null {
@@ -44,6 +66,17 @@ function cookieToken(request: Request): string | null {
 }
 
 export async function uidFromRequest(request: Request, projectId: string): Promise<string> {
+  const user = await userFromRequest(request, projectId);
+  return user.uid;
+}
+
+// ─── Ariadne's Thread [AT-0041] ─────────────────────
+// What: Return uid and email from Bearer or seenshot_id cookie
+// Why:  OAuth consent and authorize POST need the signed-in email
+// Date: 2026-08-27
+// Related: [AT-0003] src/auth.ts:verifyFirebaseToken, [AT-0040] src/oauth.ts:handleAuthorizePost
+// ─────────────────────────────────────────────────────
+export async function userFromRequest(request: Request, projectId: string): Promise<FirebaseUser> {
   const header = request.headers.get("Authorization");
   let token: string | null = null;
   if (header && header.startsWith("Bearer ")) {
@@ -57,5 +90,5 @@ export async function uidFromRequest(request: Request, projectId: string): Promi
     console.warn("auth: missing bearer and cookie");
     throw new Error("STORAGE_NEED_SIGN_IN");
   }
-  return verifyFirebaseToken(token, projectId);
+  return verifyFirebaseUser(token, projectId);
 }

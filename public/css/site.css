@@ -21,9 +21,9 @@ a { color: var(--yellow); }
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  width: min(1200px, calc(100% - 32px));
-  margin: 0 auto;
-  padding: 20px 0 0;
+  width: 100%;
+  margin: 0;
+  padding: 20px 2.5% 0;
 }
 .brand {
   display: flex;
@@ -54,15 +54,38 @@ a { color: var(--yellow); }
   font-weight: 800;
 }
 .topnav nav a:hover { color: var(--yellow); }
+.topnav nav .sign-out {
+  background: none;
+  border: 0;
+  padding: 0;
+  color: var(--paper);
+  font-weight: 800;
+  font-family: inherit;
+  font-size: inherit;
+  cursor: pointer;
+}
+.topnav nav .sign-out:hover { color: var(--yellow); }
 main.landing {
   width: min(720px, calc(100% - 32px));
   margin: 0 auto;
   padding: 48px 0 80px;
 }
 main.page {
-  width: min(1200px, calc(100% - 32px));
-  margin: 0 auto;
-  padding: 32px 0 80px;
+  width: 100%;
+  margin: 0;
+  padding: 32px 2.5% 80px;
+}
+/* ─── Ariadne's Thread [AT-0027] ─────────────────────
+   What: Tighten sign-in page top gap and auth h2 margin
+   Why:  Global h2 margin 56px left a large empty band above the form
+   Date: 2026-08-27
+   Related: [AT-0016] public/signin.html, [AT-0026] public/css/site.css:.auth-form
+─────────────────────────────────────────────────────── */
+main.page-auth {
+  padding-top: 12px;
+}
+.auth-form h2 {
+  margin: 0 0 4px;
 }
 .hero { text-align: center; }
 .hero > img {
@@ -175,6 +198,13 @@ h2 {
   background: #1d3bb8;
 }
 .error a, .empty a { color: var(--yellow); }
+.empty-wrap:not([hidden]) {
+  margin: 0 0 24px;
+}
+.empty-wrap .empty {
+  width: 100%;
+  margin: 0;
+}
 .bento {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -219,14 +249,15 @@ h2 {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: top center;
 }
 .bento-card h3 { margin: 0 0 6px; font-size: 22px; }
 .bento-card p { margin: 0; font-size: 14px; opacity: 0.9; }
 .cabinet-head {
   display: flex;
   justify-content: space-between;
-  align-items: flex-end;
-  gap: 16px;
+  align-items: center;
+  gap: 20px;
   flex-wrap: wrap;
   margin: 0 0 24px;
 }
@@ -272,17 +303,95 @@ h2 {
   font-size: 16px;
   font-family: inherit;
 }
-.auth-form input::placeholder { color: rgba(246, 239, 226, 0.55); }
+/* ─── Ariadne's Thread [AT-0031] ─────────────────────
+   What: Pin Generate password inside the password input
+   Why:  The control must sit in the field, not under Forgot password
+   Date: 2026-08-27
+   Related: [AT-0031] public/signin.html, [AT-0031] public/js/signin.js:generatePassword
+─────────────────────────────────────────────────────── */
+.password-field {
+  position: relative;
+  width: 100%;
+}
+.auth-form .password-field input {
+  padding-right: 44px;
+}
+.auth-form .password-field.has-generate input {
+  padding-right: 178px;
+}
+.generate-password {
+  position: absolute;
+  right: 42px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: 0;
+  padding: 0;
+  color: var(--yellow);
+  font-weight: 800;
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.generate-password:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+.toggle-password {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--paper);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.toggle-password:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+.toggle-password .eye-closed {
+  display: none;
+}
+.toggle-password[aria-pressed="true"] .eye-open {
+  display: none;
+}
+.toggle-password[aria-pressed="true"] .eye-closed {
+  display: block;
+}
+.auth-form .download {
+  align-self: center;
+}
+.auth-form .create-account {
+  align-self: center;
+  text-align: center;
+  margin-top: 18px;
+}
 .auth-row {
   display: flex;
   justify-content: space-between;
   gap: 12px;
   flex-wrap: wrap;
 }
+/* ─── Ariadne's Thread [AT-0020] ─────────────────────
+   What: Sign-in flat links are white
+   Why:  Create account, Forgot password, Email me a sign-in link must not be yellow
+   Date: 2026-08-27
+   Related: [AT-0016] public/signin.html, [AT-0010] public/js/signin.js
+─────────────────────────────────────────────────────── */
 .flat {
   background: none;
   border: 0;
-  color: var(--yellow);
+  color: #fff;
   font-weight: 800;
   font-family: inherit;
   cursor: pointer;

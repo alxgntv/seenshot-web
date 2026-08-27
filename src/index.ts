@@ -1,5 +1,6 @@
 import { uidFromRequest } from "./auth";
 import { ownerShotPage, sharePage } from "./html";
+import { handleAuthorizeGet, handleAuthorizePost, handleTokenPost } from "./oauth";
 
 export interface Env {
   DB: D1Database;
@@ -7,6 +8,7 @@ export interface Env {
   ASSETS: Fetcher;
   FIREBASE_PROJECT_ID: string;
   FIREBASE_API_KEY: string;
+  FIREBASE_SERVICE_ACCOUNT_JSON?: string;
   API_BASE_URL: string;
   R2_PUBLIC_BASE_URL: string;
   ABUSE_EMAIL: string;
@@ -33,6 +35,7 @@ function jsonError(code: string, status = 400): Response {
   const messages: Record<string, string> = {
     STORAGE_NEED_SIGN_IN: "Sign in to save to the cloud or share a link.",
     AUTH_REFRESH_FAILED: "Could not refresh your sign-in. Check your internet connection and try again.",
+    AUTH_DISPOSABLE_EMAIL: "Please enter your permanent email address.",
     UNKNOWN_ERROR: "Something went wrong. Try again.",
   };
   const message = messages[code] ?? messages.UNKNOWN_ERROR;
@@ -53,8 +56,14 @@ function originOf(request: Request): string {
 }
 
 function pagePathFor(shot: { visibility: string; public_id: string | null; shot_id: string }): string {
+  // ─── Ariadne's Thread [AT-0018] ─────────────────────
+  // What: Public cabinet links use /screenshot/{fileId}
+  // Why:  Same 12-hex as SeenShot-date-id.png from the Mac app
+  // Date: 2026-08-27
+  // Related: [AT-0184] app→AnnotateWindow.cpp:makeShotFileId, [AT-0185] backend→quota.ts:publicShareUrl
+  // ─────────────────────────────────────────────────────
   if (shot.visibility === "public" && shot.public_id) {
-    return `/s/${shot.public_id}`;
+    return `/screenshot/${shot.public_id}`;
   }
   return `/shot/${shot.shot_id}`;
 }
@@ -76,6 +85,21 @@ export default {
       if (url.pathname === "/health") {
         return Response.json({ ok: true });
       }
+      // ─── Ariadne's Thread [AT-0039] ─────────────────────
+      // What: Route /oauth/authorize and /oauth/token on the site Worker
+      // Why:  Cookie seenshot_id lives on seenshot.app; the API Worker cannot authorize
+      // Date: 2026-08-27
+      // Related: [AT-0040] src/oauth.ts, [AT-0038] wrangler.toml
+      // ─────────────────────────────────────────────────────
+      if (url.pathname === "/oauth/authorize" && request.method === "GET") {
+        return handleAuthorizeGet(request, env);
+      }
+      if (url.pathname === "/oauth/authorize" && request.method === "POST") {
+        return handleAuthorizePost(request, env);
+      }
+      if (url.pathname === "/oauth/token" && request.method === "POST") {
+        return handleTokenPost(request, env);
+      }
       if (url.pathname === "/api/config" && request.method === "GET") {
         return config(request, env);
       }
@@ -91,8 +115,14 @@ export default {
       if (url.pathname.startsWith("/api/public/") && request.method === "GET") {
         return publicPng(request, env);
       }
+      if (url.pathname.startsWith("/screenshot/")) {
+        return serveShare(request, env, "/screenshot/");
+      }
       if (url.pathname.startsWith("/s/")) {
-        return serveShare(request, env);
+        const id = url.pathname.slice("/s/".length);
+        const target = `${originOf(request)}/screenshot/${id}`;
+        console.log(`index: redirect /s/ to ${target}`);
+        return Response.redirect(target, 301);
       }
       if (url.pathname.startsWith("/shot/")) {
         return serveOwnerShot(request, env);
@@ -104,6 +134,9 @@ export default {
       console.error(`index: unhandled ${code}`, error);
       if (code === "STORAGE_NEED_SIGN_IN" || code === "AUTH_REFRESH_FAILED") {
         return withCors(jsonError(code, 401));
+      }
+      if (code === "AUTH_DISPOSABLE_EMAIL") {
+        return withCors(jsonError(code, 403));
       }
       return withCors(jsonError("UNKNOWN_ERROR", 500));
     }
@@ -261,45 +294,52 @@ async function publicPng(request: Request, env: Env): Promise<Response> {
   const banned = await env.DB.prepare("SELECT public_id FROM takedowns WHERE public_id = ?").bind(id).first();
   const row = banned
     ? null
-    : await env.DB.prepare("SELECT shot_id FROM shots WHERE public_id = ? AND visibility = 'public'")
-        .bind(id)
-        .first();
-  console.log(`index: publicPng id=${id} banned=${Boolean(banned)} row=${Boolean(row)}`);
-  if (!row) {
+    : await env.DB.prepare(
+        "SELECT shot_id, public_id FROM shots WHERE visibility = 'public' AND (public_id = ? OR shot_id = ?)",
+      )
+        .bind(id, id)
+        .first<{ shot_id: string; public_id: string | null }>();
+  console.log(`index: publicPng id=${id} banned=${Boolean(banned)} row=${Boolean(row)} publicId=${row?.public_id ?? "none"}`);
+  if (!row || !row.public_id) {
     return new Response("Not found", { status: 404, headers: { "content-type": "text/plain" } });
   }
-  const object = await env.BUCKET.get(`public/${id}.png`);
+  const object = await env.BUCKET.get(`public/${row.public_id}.png`);
   if (!object) {
-    console.warn(`index: publicPng r2 missing id=${id}`);
+    console.warn(`index: publicPng r2 missing id=${id} key=public/${row.public_id}.png`);
     return new Response("Not found", { status: 404, headers: { "content-type": "text/plain" } });
   }
   return r2Png(object, "public, max-age=31536000, immutable");
 }
 
-async function serveShare(request: Request, env: Env): Promise<Response> {
+async function serveShare(request: Request, env: Env, prefix: string): Promise<Response> {
   const origin = originOf(request);
-  const raw = new URL(request.url).pathname.slice("/s/".length);
+  const raw = new URL(request.url).pathname.slice(prefix.length);
   const id = decodeURIComponent(raw).replace(/\.png$/, "");
   if (!id || !safeId(id)) {
-    console.warn(`index: share bad id path=${request.url}`);
+    console.warn(`index: share bad id path=${request.url} prefix=${prefix}`);
     return jsonError("UNKNOWN_ERROR", 400);
   }
   const banned = await env.DB.prepare("SELECT public_id FROM takedowns WHERE public_id = ?").bind(id).first();
   const row = banned
     ? null
-    : await env.DB.prepare("SELECT shot_id FROM shots WHERE public_id = ? AND visibility = 'public'")
-        .bind(id)
-        .first();
-  const imageUrl = `${origin}/api/public/${id}.png`;
+    : await env.DB.prepare(
+        "SELECT shot_id, public_id FROM shots WHERE visibility = 'public' AND (public_id = ? OR shot_id = ?)",
+      )
+        .bind(id, id)
+        .first<{ shot_id: string; public_id: string | null }>();
+  const publicId = row?.public_id || id;
+  const imageUrl = `${origin}/api/public/${publicId}.png`;
   const html = sharePage({
-    publicId: id,
+    publicId,
     imageUrl,
-    pageUrl: `${origin}/s/${id}`,
+    pageUrl: `${origin}/screenshot/${publicId}`,
     missing: !row,
-    abuseUrl: `${env.API_BASE_URL}/v1/abuse?id=${encodeURIComponent(id)}`,
+    abuseUrl: `${env.API_BASE_URL}/v1/abuse?id=${encodeURIComponent(publicId)}`,
     abuseEmail: env.ABUSE_EMAIL,
   });
-  console.log(`index: share ${id} missing=${!row} banned=${Boolean(banned)} imageUrl=${imageUrl}`);
+  console.log(
+    `index: share prefix=${prefix} id=${id} publicId=${publicId} missing=${!row} banned=${Boolean(banned)} imageUrl=${imageUrl}`,
+  );
   return new Response(html, {
     status: row ? 200 : 404,
     headers: { "content-type": "text/html; charset=utf-8", "cache-control": "public, max-age=60" },
