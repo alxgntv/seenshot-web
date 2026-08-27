@@ -112,7 +112,16 @@ export default {
       if (url.pathname.startsWith("/api/shots/") && url.pathname.endsWith("/image") && request.method === "GET") {
         return withCors(await shotImage(request, env));
       }
-      if (url.pathname.startsWith("/api/public/") && request.method === "GET") {
+      // ─── Ariadne's Thread [AT-0049] ─────────────────────
+      // What: Serve public PNGs at /public/{id}.png (R2 key path) and keep /api/public/
+      // Why:  Material URLs must be seenshot.app, not r2.dev; apex is already this Worker
+      // Date: 2026-08-27
+      // Related: [AT-0050] src/index.ts:publicPng, [AT-0167] backend→index.ts:serveShare
+      // ─────────────────────────────────────────────────────
+      if (
+        (url.pathname.startsWith("/public/") || url.pathname.startsWith("/api/public/")) &&
+        request.method === "GET"
+      ) {
         return publicPng(request, env);
       }
       if (url.pathname.startsWith("/screenshot/")) {
@@ -284,11 +293,20 @@ async function shotImage(request: Request, env: Env): Promise<Response> {
   return jsonError("UNKNOWN_ERROR", 404);
 }
 
+// ─── Ariadne's Thread [AT-0050] ─────────────────────
+// What: Resolve public PNG from /public/{id}.png or /api/public/{id}.png
+// Why:  Same R2 key public/{id}.png; /api/public/ stays as the old path
+// Date: 2026-08-27
+// Related: [AT-0049] src/index.ts:fetch, [AT-0051] src/index.ts:serveShare
+// ─────────────────────────────────────────────────────
 async function publicPng(request: Request, env: Env): Promise<Response> {
-  const file = new URL(request.url).pathname.slice("/api/public/".length);
+  const pathname = new URL(request.url).pathname;
+  const prefix = pathname.startsWith("/api/public/") ? "/api/public/" : "/public/";
+  const file = pathname.slice(prefix.length);
   const id = file.replace(/\.png$/, "");
+  console.log(`index: publicPng prefix=${prefix} file=${file} id=${id} url=${request.url}`);
   if (!id || !safeId(id)) {
-    console.warn(`index: publicPng empty id path=${request.url}`);
+    console.warn(`index: publicPng empty id path=${request.url} prefix=${prefix} file=${file}`);
     return jsonError("UNKNOWN_ERROR", 400);
   }
   const banned = await env.DB.prepare("SELECT public_id FROM takedowns WHERE public_id = ?").bind(id).first();
@@ -299,26 +317,45 @@ async function publicPng(request: Request, env: Env): Promise<Response> {
       )
         .bind(id, id)
         .first<{ shot_id: string; public_id: string | null }>();
-  console.log(`index: publicPng id=${id} banned=${Boolean(banned)} row=${Boolean(row)} publicId=${row?.public_id ?? "none"}`);
+  console.log(
+    `index: publicPng id=${id} prefix=${prefix} banned=${Boolean(banned)} row=${Boolean(row)} publicId=${row?.public_id ?? "none"}`,
+  );
   if (!row || !row.public_id) {
-    return new Response("Not found", { status: 404, headers: { "content-type": "text/plain" } });
+    // ─── Ariadne's Thread [AT-0054] ─────────────────────
+    // What: Public PNG 404 is Cache-Control: no-store
+    // Why:  Share wait polls this URL; a cached 404 would never become the image
+    // Date: 2026-08-27
+    // Related: [AT-0050] src/index.ts:publicPng, [AT-0053] public/js/screenshot-upload.js
+    // ─────────────────────────────────────────────────────
+    console.warn(`index: publicPng not found id=${id} banned=${Boolean(banned)} d1=${Boolean(row)}`);
+    return new Response("Not found", {
+      status: 404,
+      headers: { "content-type": "text/plain", "cache-control": "no-store" },
+    });
   }
-  const object = await env.BUCKET.get(`public/${row.public_id}.png`);
+  const key = `public/${row.public_id}.png`;
+  const object = await env.BUCKET.get(key);
   if (!object) {
-    console.warn(`index: publicPng r2 missing id=${id} key=public/${row.public_id}.png`);
-    return new Response("Not found", { status: 404, headers: { "content-type": "text/plain" } });
+    console.warn(`index: publicPng r2 missing id=${id} key=${key}`);
+    return new Response("Not found", {
+      status: 404,
+      headers: { "content-type": "text/plain", "cache-control": "no-store" },
+    });
   }
+  console.log(`index: publicPng hit id=${id} key=${key} size=${object.size} prefix=${prefix}`);
   return r2Png(object, "public, max-age=31536000, immutable");
 }
 
 async function serveShare(request: Request, env: Env, prefix: string): Promise<Response> {
   const origin = originOf(request);
-  const raw = new URL(request.url).pathname.slice(prefix.length);
+  const requestUrl = new URL(request.url);
+  const raw = requestUrl.pathname.slice(prefix.length);
   const id = decodeURIComponent(raw).replace(/\.png$/, "");
   if (!id || !safeId(id)) {
     console.warn(`index: share bad id path=${request.url} prefix=${prefix}`);
     return jsonError("UNKNOWN_ERROR", 400);
   }
+  const uploading = requestUrl.searchParams.get("uploading") === "1";
   const banned = await env.DB.prepare("SELECT public_id FROM takedowns WHERE public_id = ?").bind(id).first();
   const row = banned
     ? null
@@ -328,21 +365,41 @@ async function serveShare(request: Request, env: Env, prefix: string): Promise<R
         .bind(id, id)
         .first<{ shot_id: string; public_id: string | null }>();
   const publicId = row?.public_id || id;
-  const imageUrl = `${origin}/api/public/${publicId}.png`;
+  // ─── Ariadne's Thread [AT-0051] ─────────────────────
+  // What: Share <img> and og:image use /public/{id}.png on this origin
+  // Why:  Material links stay on seenshot.app; R2_PUBLIC_BASE_URL is that host
+  // Date: 2026-08-27
+  // Related: [AT-0050] src/index.ts:publicPng, [AT-0208] backend→index.ts:serveShare
+  // ─────────────────────────────────────────────────────
+  // ─── Ariadne's Thread [AT-0052] ─────────────────────
+  // What: ?uploading=1 with no D1 row returns 200 wait HTML instead of gone
+  // Why:  Mac opens the share URL before confirm writes public/{id}.png
+  // Date: 2026-08-27
+  // Related: [AT-0004] src/html.ts:sharePage, [AT-0210] AnnotateWindow.cpp:share
+  // ─────────────────────────────────────────────────────
+  const imageUrl = `${origin}/public/${publicId}.png`;
+  const waiting = !row && !banned && uploading;
+  console.log(
+    `index: share imageUrl=${imageUrl} origin=${origin} r2PublicBase=${env.R2_PUBLIC_BASE_URL} uploading=${uploading} waiting=${waiting} banned=${Boolean(banned)} missing=${!row}`,
+  );
   const html = sharePage({
     publicId,
     imageUrl,
     pageUrl: `${origin}/screenshot/${publicId}`,
     missing: !row,
+    uploading: waiting,
     abuseUrl: `${env.API_BASE_URL}/v1/abuse?id=${encodeURIComponent(publicId)}`,
     abuseEmail: env.ABUSE_EMAIL,
   });
   console.log(
-    `index: share prefix=${prefix} id=${id} publicId=${publicId} missing=${!row} banned=${Boolean(banned)} imageUrl=${imageUrl}`,
+    `index: share prefix=${prefix} id=${id} publicId=${publicId} missing=${!row} banned=${Boolean(banned)} waiting=${waiting} imageUrl=${imageUrl}`,
   );
   return new Response(html, {
-    status: row ? 200 : 404,
-    headers: { "content-type": "text/html; charset=utf-8", "cache-control": "public, max-age=60" },
+    status: row || waiting ? 200 : 404,
+    headers: {
+      "content-type": "text/html; charset=utf-8",
+      "cache-control": waiting ? "no-store" : "public, max-age=60",
+    },
   });
 }
 

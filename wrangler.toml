@@ -51,7 +51,13 @@ html_handling = "auto-trailing-slash"
 # Date: 2026-08-27
 # Related: [AT-0039] src/index.ts, [AT-0040] src/oauth.ts
 # ─────────────────────────────────────────────────────
-run_worker_first = ["/api/*", "/oauth/*", "/screenshot/*", "/s/*", "/shot/*", "/health"]
+# ─── Ariadne's Thread [AT-0049] ─────────────────────
+# What: Run the Worker first for /public/* PNG keys
+# Why:  Public shots are R2 objects at public/{id}.png, served on seenshot.app
+# Date: 2026-08-27
+# Related: [AT-0049] src/index.ts:fetch, [AT-0050] src/index.ts:publicPng
+# ─────────────────────────────────────────────────────
+run_worker_first = ["/api/*", "/oauth/*", "/screenshot/*", "/s/*", "/shot/*", "/public/*", "/health"]
 
 # ─── Ariadne's Thread [AT-0029] ─────────────────────
 # What: Import disposable_email_blocklist.conf as a text module
@@ -68,6 +74,6 @@ fallthrough = true
 FIREBASE_PROJECT_ID = "seenshot-app"
 FIREBASE_API_KEY = "AIzaSyCM5aJRTX9I8DXCmtbPqZKugi-m8VfMzco"
 API_BASE_URL = "https://seenshot-api.codemarket.workers.dev"
-R2_PUBLIC_BASE_URL = "https://pub-453d6a740dac45a2b8df5cb9e77df3b2.r2.dev"
+R2_PUBLIC_BASE_URL = "https://seenshot.app"
 ABUSE_EMAIL = "abuse@seenshot.com"
 # FIREBASE_SERVICE_ACCOUNT_JSON is a wrangler secret (RS256 custom tokens for Mac PKCE)

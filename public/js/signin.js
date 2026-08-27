@@ -310,13 +310,34 @@
     });
   }
 
-  const session = SeenShotAuth.readSession();
-  if (session.refreshToken) {
-    const next = afterSignInPath();
-    console.log("SeenShot signin: already signed in, go " + next);
-    location.href = next;
-    return;
-  }
-  setMode("signin");
-  finishEmailLink();
+  // ─── Ariadne's Thread [AT-0046] ─────────────────────
+  // What: Refresh id token and cookie before following next=/oauth/authorize
+  // Why:  localStorage refreshToken with an expired seenshot_id cookie looped with Worker 302
+  // Date: 2026-08-27
+  // Related: [AT-0045] src/oauth.ts:handleAuthorizeGet, [AT-0008] public/js/auth.js:ensureIdToken
+  // ─────────────────────────────────────────────────────
+  (async function resumeIfSignedIn() {
+    const session = SeenShotAuth.readSession();
+    console.log(
+      "SeenShot signin: boot hasRefresh=" + Boolean(session.refreshToken) +
+        " uid=" + (session.uid || "")
+    );
+    if (!session.refreshToken) {
+      setMode("signin");
+      finishEmailLink();
+      return;
+    }
+    try {
+      await SeenShotAuth.ensureIdToken();
+      const next = afterSignInPath();
+      console.log("SeenShot signin: already signed in, go " + next);
+      location.href = next;
+    } catch (error) {
+      const code = error && error.message ? error.message : "AUTH_REFRESH_FAILED";
+      console.warn("SeenShot signin: existing session failed code=" + code, error);
+      show(code, true);
+      setMode("signin");
+      finishEmailLink();
+    }
+  })();
 })();

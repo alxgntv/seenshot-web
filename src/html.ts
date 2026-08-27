@@ -18,6 +18,7 @@ export function sharePage(opts: {
   imageUrl: string;
   pageUrl: string;
   missing?: boolean;
+  uploading?: boolean;
   abuseUrl: string;
   abuseEmail: string;
 }): string {
@@ -26,6 +27,68 @@ export function sharePage(opts: {
   const pageUrl = escapeHtml(opts.pageUrl);
   const abuseUrl = escapeHtml(opts.abuseUrl);
   const abuseEmail = escapeHtml(opts.abuseEmail);
+  if (opts.missing && opts.uploading) {
+    // ─── Ariadne's Thread [AT-0052] ─────────────────────
+    // What: Wait shell with native progress while Mac PUT/confirm is still in flight
+    // Why:  Share opens /screenshot/{id}?uploading=1 before the public PNG exists
+    // Date: 2026-08-27
+    // Related: [AT-0004] src/html.ts:sharePage, [AT-0053] public/js/screenshot-upload.js
+    // ─────────────────────────────────────────────────────
+    console.log(
+      `html: share uploading wait publicId=${opts.publicId} imageUrl=${opts.imageUrl} pageUrl=${opts.pageUrl}`,
+    );
+    return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>SeenShot</title>
+  <link rel="icon" href="/SeenShot.png">
+  <style>
+    html, body { margin: 0; height: 100%; background: #000; color: #fff; }
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: ui-rounded, "SF Pro Rounded", "Avenir Next", sans-serif;
+    }
+    img {
+      display: block;
+      max-width: 80%;
+      max-height: 80%;
+      width: auto;
+      height: auto;
+      object-fit: contain;
+    }
+    #upload-wait {
+      width: min(480px, calc(100% - 48px));
+      text-align: center;
+    }
+    #upload-wait p { margin: 0 0 16px; }
+    #upload-percent { margin: 12px 0 0; font-variant-numeric: tabular-nums; }
+    progress { width: 100%; height: 8px; }
+    #status { margin: 0; padding: 24px; text-align: center; opacity: 0.7; }
+  </style>
+</head>
+<body>
+  <div id="upload-wait">
+    <p>Uploading…</p>
+    <progress id="upload-progress" max="100" value="0"></progress>
+    <p id="upload-percent">0%</p>
+  </div>
+  <img id="shot" alt="Screenshot" hidden>
+  <p id="status" hidden></p>
+  <a id="report" href="${abuseUrl}" hidden style="position:fixed;bottom:16px;left:50%;transform:translateX(-50%);color:#666;font-size:12px;font-family:ui-rounded,'SF Pro Rounded','Avenir Next',sans-serif;text-decoration:none">Report</a>
+  <script src="/js/screenshot-upload.js"></script>
+  <script>
+    console.log("SeenShot share: wait publicId=${id} imageUrl=${imageUrl} pageUrl=${pageUrl}");
+    SeenShotScreenshotUpload.start(${JSON.stringify(opts.publicId)}, ${JSON.stringify(opts.imageUrl)}, ${JSON.stringify(opts.pageUrl)});
+  </script>
+</body>
+</html>`;
+  }
   if (opts.missing) {
     // ─── Ariadne's Thread [AT-0017] ─────────────────────
     // What: Gone share page is a black screen with no Cabinet/Sign In nav
@@ -101,6 +164,10 @@ export function sharePage(opts: {
   <a href="${abuseUrl}" style="position:fixed;bottom:16px;left:50%;transform:translateX(-50%);color:#666;font-size:12px;font-family:ui-rounded,'SF Pro Rounded','Avenir Next',sans-serif;text-decoration:none">Report</a>
   <script>
     console.log("SeenShot share: publicId=${id} imageUrl=${imageUrl} pageUrl=${pageUrl} abuse=${abuseUrl} email=${abuseEmail}");
+    if (new URLSearchParams(location.search).get("uploading") === "1") {
+      history.replaceState({}, "", ${JSON.stringify(opts.pageUrl)});
+      console.log("SeenShot share: stripped uploading query publicId=${id}");
+    }
   </script>
 </body>
 </html>`;

@@ -158,18 +158,12 @@ async function mintCustomToken(env: OAuthEnv, uid: string): Promise<string> {
   return token;
 }
 
-function authorizeNextPath(url: URL): string {
-  return `${url.pathname}${url.search}`;
-}
-
-function signInRedirect(request: Request, authorizeUrl: URL): Response {
-  const next = authorizeNextPath(authorizeUrl);
-  const target = new URL("/signin", request.url);
-  target.searchParams.set("next", next);
-  console.log(`oauth: redirect to signin nextChars=${next.length}`);
-  return Response.redirect(target.toString(), 302);
-}
-
+// ─── Ariadne's Thread [AT-0045] ─────────────────────
+// What: GET /oauth/authorize always serves consent HTML after query validation
+// Why:  Worker cookie vs localStorage refreshToken 302'd /signin↔/authorize forever
+// Date: 2026-08-27
+// Related: [AT-0043] public/js/oauth-authorize.js:paintEmail, [AT-0046] public/js/signin.js
+// ─────────────────────────────────────────────────────
 export async function handleAuthorizeGet(request: Request, env: OAuthEnv): Promise<Response> {
   const url = new URL(request.url);
   const query = readAuthorizeParams(url.searchParams);
@@ -181,21 +175,20 @@ export async function handleAuthorizeGet(request: Request, env: OAuthEnv): Promi
       headers: { "content-type": "text/plain; charset=utf-8" },
     });
   }
-  try {
-    const user = await userFromRequest(request, env.FIREBASE_PROJECT_ID);
-    console.log(`oauth: GET authorize signed-in uid=${user.uid} emailChars=${user.email.length}`);
-  } catch (error) {
-    const code = error instanceof Error ? error.message : "STORAGE_NEED_SIGN_IN";
-    if (code === "AUTH_DISPOSABLE_EMAIL") {
-      throw error;
-    }
-    console.log(`oauth: GET authorize no session code=${code}`);
-    return signInRedirect(request, url);
-  }
-  const assetUrl = new URL("/oauth/authorize.html", request.url);
-  assetUrl.search = url.search;
-  console.log("oauth: GET authorize serve consent page");
-  return env.ASSETS.fetch(new Request(assetUrl.toString(), request));
+  // ─── Ariadne's Thread [AT-0047] ─────────────────────
+  // What: Serve consent via ASSETS on /oauth/authorize, not /oauth/authorize.html
+  // Why:  html_handling 307s .html back to /oauth/authorize and Chrome hits ERR_TOO_MANY_REDIRECTS
+  // Date: 2026-08-27
+  // Related: [AT-0045] src/oauth.ts:handleAuthorizeGet, wrangler.toml html_handling
+  // ─────────────────────────────────────────────────────
+  console.log(
+    `oauth: GET authorize serve consent page challengeChars=${query.codeChallenge.length} stateChars=${query.state.length}`,
+  );
+  const assetResponse = await env.ASSETS.fetch(request);
+  console.log(`oauth: GET authorize asset status=${assetResponse.status}`);
+  const headers = new Headers(assetResponse.headers);
+  headers.set("Cache-Control", "no-store");
+  return new Response(assetResponse.body, { status: assetResponse.status, headers });
 }
 
 export async function handleAuthorizePost(request: Request, env: OAuthEnv): Promise<Response> {

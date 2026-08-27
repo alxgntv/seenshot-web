@@ -124,8 +124,18 @@
         setBusy(false);
         return;
       }
-      console.log("SeenShot oauth: redirect to seenshot://oauth");
+      // ─── Ariadne's Thread [AT-0048] ─────────────────────
+      // What: After issuing the Mac code, open seenshot:// then replace the tab with /space/
+      // Why:  Consent must hand the code to SeenShot.app; the browser should land on the cabinet
+      // Date: 2026-08-27
+      // Related: [AT-0043] public/js/oauth-authorize.js, [AT-0040] src/oauth.ts:handleAuthorizePost
+      // ─────────────────────────────────────────────────────
+      console.log("SeenShot oauth: open seenshot://oauth then /space/");
       location.href = json.redirect;
+      window.setTimeout(function () {
+        console.log("SeenShot oauth: replace /space/");
+        location.replace("/space/");
+      }, 500);
     } catch (error) {
       const code = error && error.message ? error.message : "AUTH_REFRESH_FAILED";
       console.error("SeenShot oauth: continue failed code=" + code, error);
