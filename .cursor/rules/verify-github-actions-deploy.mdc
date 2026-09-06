@@ -1,0 +1,25 @@
+---
+description: After every seenshot-web main push, watch GitHub Actions and fix failed Cloudflare builds
+alwaysApply: true
+---
+
+<!-- ─── Ariadne's Thread [AT-0635] ─────────────────────
+  What: Require GitHub Actions verify after every seenshot-web main push
+  Why:  Production is Cloudflare via GitHub, not a local vinext build
+  Date: 2026-09-06
+  Related: [AT-0634] infra→.github/workflows/deploy.yml
+─────────────────────────────────────────────────────── -->
+
+# Verify Cloudflare CI after push
+
+Pushing `main` on `alxgntv/seenshot-web` deploys production Worker `seenshot-web` to `https://seenshot.app`.
+
+After every `git push` to that branch:
+
+1. Run `gh run list --repo alxgntv/seenshot-web --branch main --limit 5`.
+2. Watch the latest `Deploy seenshot.app` run until it finishes (`gh run watch <id> --repo alxgntv/seenshot-web --exit-status`).
+3. On success, `curl -sS -o /tmp/seenshot-prod.html -w "%{http_code}" https://seenshot.app/` must be 200 and the HTML must contain `SeenShot`.
+4. On failure, `gh run view <id> --log --repo alxgntv/seenshot-web`. Find the root cause. Fix the code. Commit. Push. Watch again. Repeat until the run is green and production curl passes.
+5. A green local `vinext` build is not production. Production is that GitHub Actions run.
+
+Do not run `wrangler deploy` or `vinext-cloudflare deploy` from the laptop unless the user explicitly asks for a local deploy. The production path is git push to `main`.

@@ -1,0 +1,16 @@
+---
+description: Do not deploy seenshot.app until the user explicitly asks
+alwaysApply: true
+---
+
+# Deploy only when asked
+
+Do not run `wrangler deploy`, `vinext-cloudflare deploy`, production publishes, or any live deploy from this machine after a code change.
+
+Deploy only when the user explicitly says to deploy (or «деплой», «выложи», «залей на прод»).
+
+Pushing `alxgntv/seenshot-web` branch `main` deploys production via GitHub Actions. Do not push that branch unless the user asked to ship the site.
+
+After a push to that branch, follow verify-github-actions-deploy.
+
+Local `vinext dev` / `wrangler dev` is not a deploy. Do not treat a finished edit as a reason to ship.

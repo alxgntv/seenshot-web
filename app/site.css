@@ -1,0 +1,2241 @@
+:root {
+  --blue: #2f5bff;
+  --ink: #14141c;
+  --paper: #f6efe2;
+  --pink: #ff4d9a;
+  --yellow: #ffd23f;
+  --orange: #ff7a1a;
+  --red: #ff3b30;
+}
+* { box-sizing: border-box; }
+/* ─── Ariadne's Thread [AT-0315] ─────────────────────
+   What: Pointer cursor on every a and button
+   Why:  Clickable controls must show pointer globally, not the UA default
+   Date: 2026-08-28
+   Related: [AT-0316] src/html.ts:shareBarCss, https://developer.mozilla.org/en-US/docs/Web/CSS/cursor
+─────────────────────────────────────────────────────── */
+a, button { cursor: pointer; }
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  font-family: ui-rounded, "SF Pro Rounded", "Avenir Next", sans-serif;
+  background: var(--blue);
+  color: var(--paper);
+}
+/* ─── Ariadne's Thread [AT-0342] ─────────────────────
+   What: Paint page <a> links #fff
+   Why:  In-article legal and landing links must match white footer chrome, not yellow
+   Date: 2026-08-28
+   Related: [AT-0341] public/css/site.css:.site-foot a, [AT-0020] public/css/site.css:.flat
+─────────────────────────────────────────────────────── */
+a { color: #fff; }
+/* ─── Ariadne's Thread [AT-0525] ─────────────────────
+   What: Stick .topnav to the viewport top and pad hash targets under it
+   Why:  Menu must travel with scroll; #pricing must not hide under the header
+   Date: 2026-09-05
+   Related: [AT-0354] app/site.css:.topnav, [AT-0525] components/SiteChrome.tsx:TopNav, https://developer.mozilla.org/en-US/docs/Web/CSS/position, https://developer.mozilla.org/en-US/docs/Web/CSS/scroll-padding-top
+─────────────────────────────────────────────────────── */
+html {
+  scroll-padding-top: 104px;
+}
+/* ─── Ariadne's Thread [AT-0354] ─────────────────────
+   What: Keep .topnav brand and nav on one row (flex-wrap nowrap)
+   Why:  On mobile wrap dropped Sign In under the lede with empty space on the right
+   Date: 2026-08-28
+   Related: [AT-0236] public/css/site.css:.brand, [AT-0268] public/css/site.css:body:has(main.landing) .topnav, https://developer.mozilla.org/en-US/docs/Web/CSS/flex-wrap
+─────────────────────────────────────────────────────── */
+.topnav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: nowrap;
+  flex-shrink: 0;
+  width: 100%;
+  margin: 0;
+  padding: 20px 2.5% 12px;
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: var(--blue);
+}
+/* ─── Ariadne's Thread [AT-0236] ─────────────────────
+   What: Stack brand-name and Fast, Free, Secure lede under the topnav name
+   Why:  Header brand is two lines; .lede in .brand must not use the hero 18px rule
+   Date: 2026-08-27
+   Related: [AT-0235] public/index.html, [AT-0060] src/html.ts:shareBarCss
+─────────────────────────────────────────────────────── */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  flex: 1 1 0%;
+  color: #fff;
+  text-decoration: none;
+  font-weight: 800;
+  font-size: 18px;
+}
+.brand img {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 3px solid #111;
+  box-shadow: 3px 3px 0 #111;
+  background: var(--blue);
+}
+.brand-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.brand-name {
+  font-weight: 800;
+  font-size: 18px;
+  line-height: 1.2;
+}
+.brand .lede {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.35;
+  opacity: 0.92;
+  overflow-wrap: break-word;
+}
+.topnav nav {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  flex-shrink: 0;
+}
+.topnav nav a {
+  color: #fff;
+  text-decoration: none;
+  font-weight: 800;
+}
+.topnav nav a:hover { text-decoration: underline; }
+/* ─── Ariadne's Thread [AT-0525] ─────────────────────
+   What: Keep #nav-download as a compact white .download pill in .topnav nav
+   Why:  .topnav nav a is white text; the existing pill fill is white and needs #111 ink
+   Date: 2026-09-05
+   Related: [AT-0525] components/SiteChrome.tsx:#nav-download, [AT-0344] app/site.css:.download
+─────────────────────────────────────────────────────── */
+.topnav nav a.download {
+  color: #111;
+  padding: 6px 12px;
+  font-size: 13px;
+  border-width: 3px;
+  box-shadow: 3px 3px 0 #111;
+  white-space: nowrap;
+}
+.topnav nav a.download:hover {
+  text-decoration: none;
+}
+.topnav nav .sign-out {
+  background: none;
+  border: 0;
+  padding: 0;
+  color: #fff;
+  font-weight: 800;
+  font-family: inherit;
+  font-size: inherit;
+  cursor: pointer;
+}
+.topnav nav .sign-out:hover { text-decoration: underline; }
+/* ─── Ariadne's Thread [AT-0437] ─────────────────────
+   What: Style .topnav-menu as the cabinet header disclosure; hide summary above 600px
+   Why:  Mobile collapses Sign In / email / Sign Out behind native Menu instead of wrapping the brand
+   Date: 2026-09-03
+   Related: [AT-0437] components/SiteChrome.tsx:TopNav, [AT-0009] lib/client/nav.ts:syncTopnavMenu, https://developer.mozilla.org/en-US/docs/Web/HTML/Element/details
+─────────────────────────────────────────────────────── */
+.topnav-menu {
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+}
+.topnav-menu summary {
+  display: none;
+  color: #fff;
+  font-weight: 800;
+  font-family: inherit;
+  font-size: inherit;
+  cursor: pointer;
+}
+.topnav-menu:not([open]) nav {
+  display: none;
+}
+@media (min-width: 601px) {
+  .topnav-menu summary {
+    display: none;
+  }
+  .topnav-menu nav,
+  .topnav-menu:not([open]) nav {
+    display: flex;
+  }
+  .topnav-menu::details-content {
+    content-visibility: visible;
+    display: block;
+  }
+}
+main.landing {
+  width: min(720px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 48px 0 80px;
+}
+/* ─── Ariadne's Thread [AT-0268] ─────────────────────
+   What: Match homepage .topnav width to main.landing
+   Why:  Header row must share the 720px landing column, not full viewport
+   Date: 2026-08-27
+   Related: [AT-0014] public/css/site.css:.topnav, [AT-0014] public/css/site.css:main.landing
+─────────────────────────────────────────────────────── */
+body:has(main.landing) .topnav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: nowrap;
+  width: min(720px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 20px 0 12px;
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: var(--blue);
+}
+main.page {
+  width: 100%;
+  margin: 0;
+  padding: 32px 2.5% 80px;
+}
+/* ─── Ariadne's Thread [AT-0027] ─────────────────────
+   What: Tighten sign-in page top gap and auth h2 margin
+   Why:  Global h2 margin 56px left a large empty band above the form
+   Date: 2026-08-27
+   Related: [AT-0016] public/signin.html, [AT-0026] public/css/site.css:.auth-form
+─────────────────────────────────────────────────────── */
+/* ─── Ariadne's Thread [AT-0323] ─────────────────────
+   What: Stretch main.page-auth and center .auth-form in the leftover column
+   Why:  Sign-in main stopped at content height; the form sat at the top of the gap above the footer
+   Date: 2026-08-28
+   Related: [AT-0027] public/css/site.css:main.page-auth, [AT-0322] public/css/site.css:.site-foot, https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_flexible_box_layout
+─────────────────────────────────────────────────────── */
+main.page-auth {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding-top: 12px;
+  padding-bottom: 12px;
+  overflow: auto;
+}
+.auth-form h2 {
+  margin: 0 0 4px;
+}
+.hero { text-align: center; }
+/* ─── Ariadne's Thread [AT-0238] ─────────────────────
+   What: Size .hero > img to 126px (30% smaller than 180px)
+   Why:  Landing hero logo must be 30% smaller
+   Date: 2026-08-27
+   Related: [AT-0014] public/index.html, [AT-0229] public/index.html
+─────────────────────────────────────────────────────── */
+.hero > img {
+  width: 126px;
+  height: 126px;
+  object-fit: cover;
+  border-radius: 25px;
+  border: 4px solid #111;
+  box-shadow: 6px 6px 0 #111;
+  background: var(--blue);
+}
+h1 {
+  margin: 28px 0 8px;
+  font-size: clamp(22px, 7.2vw, 56px);
+  letter-spacing: -0.04em;
+  line-height: 1;
+  white-space: nowrap;
+}
+/* ─── Ariadne's Thread [AT-0226] ─────────────────────
+   What: 4px #111 letter stroke and 5px 5px 0 #111 text-shadow on hero h1
+   Why:  Same outline as .download but on glyphs, not pill boxes around words
+   Date: 2026-08-27
+   Related: [AT-0225] public/index.html, https://developer.mozilla.org/en-US/docs/Web/CSS/-webkit-text-stroke
+─────────────────────────────────────────────────────── */
+/* ─── Ariadne's Thread [AT-0401] ─────────────────────
+   What: Size hero h1 stroke and text-shadow in em
+   Why:  clamp() shrinks the line on phones; a 5px shadow stays a doubled ghost
+   Date: 2026-09-01
+   Related: [AT-0226] public/css/site.css:.hero h1, https://developer.mozilla.org/en-US/docs/Web/CSS/text-shadow
+─────────────────────────────────────────────────────── */
+.hero h1 {
+  white-space: nowrap;
+  color: var(--paper);
+  -webkit-text-stroke: 0.07em #111;
+  paint-order: stroke fill;
+  text-shadow: 0.09em 0.09em 0 #111;
+}
+.hero h1 .shot {
+  color: var(--yellow);
+}
+/* ─── Ariadne's Thread [AT-0085] ─────────────────────
+   What: Paint h1 .send Send It ↗ as #f96d00
+   Why:  It used --red #ff3b30; the landing hero needs this orange
+   Date: 2026-08-27
+   Related: [AT-0014] public/index.html, [AT-0082] public/index.html
+─────────────────────────────────────────────────────── */
+.hero h1 .send {
+  white-space: nowrap;
+  color: #f96d00;
+}
+.hero h1 .send .send-arrow {
+  font-size: 0.62em;
+  color: inherit;
+  vertical-align: middle;
+}
+/* ─── Ariadne's Thread [AT-0625] ─────────────────────
+   What: Wrap unique-landing hero h1 instead of nowrap
+   Why:  MacOS ScreenShot App with titles overflow the 720px column when nowrap
+   Date: 2026-09-06
+   Related: [AT-0625] components/LandingPageMain.tsx:h1.landing-h1, [AT-0226] app/site.css:.hero h1, https://developer.mozilla.org/en-US/docs/Web/CSS/white-space
+─────────────────────────────────────────────────────── */
+.hero h1.landing-h1 {
+  white-space: normal;
+  overflow-wrap: break-word;
+  max-width: 100%;
+  line-height: 1.12;
+}
+.lede {
+  margin: 0 0 28px;
+  font-size: 18px;
+  opacity: 0.92;
+}
+/* ─── Ariadne's Thread [AT-0404] ─────────────────────
+   What: Keep .hero .lede icons and sentence on one nowrap row
+   Why:  Flex column split the anonymous "Hit", <b>, and rest of the line into stacked items
+   Date: 2026-09-01
+   Related: [AT-0402] public/index.html:.lede-agents, [AT-0403] public/index.html, https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_flexible_box_layout/Basic_concepts_of_flexbox#anonymous_flex_items
+─────────────────────────────────────────────────────── */
+.hero .lede {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  white-space: nowrap;
+}
+.lede-agents {
+  display: inline-flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  color: var(--paper);
+}
+.lede-agents svg,
+.lede-agent {
+  display: block;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+/* ─── Ariadne's Thread [AT-0440] ─────────────────────
+   What: Mask keep.md Hermes mark onto .lede-agent-hermes
+   Why:  The Hermes path is too large to inline; mask keeps currentColor on the blue hero
+   Date: 2026-09-03
+   Related: [AT-0440] components/LandingMain.tsx:.lede-agents, https://developer.mozilla.org/en-US/docs/Web/CSS/mask-image
+─────────────────────────────────────────────────────── */
+/* ─── Ariadne's Thread [AT-0441] ─────────────────────
+   What: Paint Hermes mask SVG #fff and set mask-mode luminance
+   Why:  fill currentColor in the mask file rasterizes to black, so .lede-agent-hermes was an empty 20px slot
+   Date: 2026-09-03
+   Related: [AT-0440] app/site.css:.lede-agent-hermes, https://developer.mozilla.org/en-US/docs/Web/CSS/mask-mode
+─────────────────────────────────────────────────────── */
+.lede-agent-hermes {
+  background-color: currentColor;
+  -webkit-mask-image: url("/lede-hermes.svg");
+  mask-image: url("/lede-hermes.svg");
+  mask-mode: luminance;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+}
+/* ─── Ariadne's Thread [AT-0344] ─────────────────────
+   What: Paint .download pills white fill with #111 text
+   Why:  Sign In #primary and #latest-download must be white everywhere; same class on all CTA pills
+   Date: 2026-08-28
+   Related: [AT-0325] public/css/site.css:.download, [AT-0159] public/css/site.css:.download, https://developer.mozilla.org/en-US/docs/Web/CSS/background-color
+─────────────────────────────────────────────────────── */
+/* ─── Ariadne's Thread [AT-0466] ─────────────────────
+   What: Style .corporate-contact with the existing pricing pill chrome
+   Why:  Contact Me must look like a CTA without being rewritten as a release download
+   Date: 2026-09-03
+   Related: [AT-0465] components/LandingMain.tsx:#pricing-corporate-contact, [AT-0344] app/site.css:.download
+─────────────────────────────────────────────────────── */
+.download,
+.corporate-contact,
+button.download {
+  display: inline-block;
+  padding: 14px 22px;
+  border-radius: 999px;
+  border: 4px solid #111;
+  background: #fff;
+  color: #111;
+  font-weight: 800;
+  font-size: 16px;
+  text-decoration: none;
+  box-shadow: 5px 5px 0 #111;
+  cursor: pointer;
+  font-family: inherit;
+}
+.download:hover,
+.corporate-contact:hover,
+button.download:hover { transform: translate(-1px, -1px); }
+button.download:disabled {
+  opacity: 0.6;
+  cursor: pointer;
+  transform: none;
+}
+/* ─── Ariadne's Thread [AT-0367] ─────────────────────
+   What: Align Apple mark and label on every .download that contains .download-apple
+   Why:  Pricing Download pills must match #latest-download
+   Date: 2026-08-28
+   Related: [AT-0347] public/index.html:#latest-download, [AT-0344] public/css/site.css:.download, https://developer.mozilla.org/en-US/docs/Web/CSS/:has
+─────────────────────────────────────────────────────── */
+.download:has(.download-apple) {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+  min-width: 0;
+}
+/* ─── Ariadne's Thread [AT-0408] ─────────────────────
+   What: Ellipsis .download-label when the Apple Download pill is narrower than the copy
+   Why:  Download Free for macOS must stay one line and truncate if it does not fit
+   Date: 2026-09-01
+   Related: [AT-0367] public/css/site.css:.download:has(.download-apple), [AT-0397] public/index.html:.download-label, https://developer.mozilla.org/en-US/docs/Web/CSS/text-overflow
+─────────────────────────────────────────────────────── */
+.download-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.download .download-apple {
+  display: block;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  fill: currentColor;
+}
+/* ─── Ariadne's Thread [AT-0386] ─────────────────────
+   What: Keep hidden .download pills at display:none
+   Why:  .download { display: inline-block } overrides the HTML hidden attribute so Member still sees Upgrade to Pro
+   Date: 2026-08-31
+   Related: [AT-0283] public/js/nav.js:paint, [AT-0344] public/css/site.css:.download, https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Global_attributes/hidden
+─────────────────────────────────────────────────────── */
+.download[hidden],
+button.download[hidden] {
+  display: none;
+}
+/* ─── Ariadne's Thread [AT-0234] ─────────────────────
+   What: Hero row is Download plus one key pill with cmd + Shift + 2
+   Why:  Shortcut is one button; plus signs sit between the words
+   Date: 2026-08-27
+   Related: [AT-0233] public/index.html, [AT-0228] public/css/site.css:.hero-cta
+─────────────────────────────────────────────────────── */
+.hero-cta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  width: 100%;
+}
+/* ─── Ariadne's Thread [AT-0397] ─────────────────────
+   What: Stack .download-arch under every Apple Download pill
+   Why:  Chip architecture must not live inside the CTA label
+   Date: 2026-09-01
+   Related: [AT-0397] public/index.html:#latest-download, [AT-0367] public/css/site.css:.download:has(.download-apple)
+─────────────────────────────────────────────────────── */
+.download-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+  min-width: 0;
+}
+.download-arch {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.35;
+  opacity: 0.85;
+  text-align: center;
+}
+.pricing-card .download-wrap {
+  align-items: flex-start;
+}
+.pricing-card .download-arch {
+  text-align: left;
+}
+/* ─── Ariadne's Thread [AT-0433] ─────────────────────
+   What: Center #empty .download-wrap and .download-arch in the empty card
+   Why:  Download Free for macOS must sit in the horizontal middle of #empty
+   Date: 2026-09-03
+   Related: [AT-0415] app/site.css:#empty, [AT-0397] app/site.css:.download-wrap
+─────────────────────────────────────────────────────── */
+#empty .download-wrap {
+  align-items: center;
+}
+#empty .download-arch {
+  text-align: center;
+}
+.meta {
+  margin: 14px 0 0;
+  font-size: 13px;
+  opacity: 0.85;
+}
+/* ─── Ariadne's Thread [AT-0394] ─────────────────────
+   What: Keep #latest-meta version and download_count on one centered row after a period
+   Why:  "stable version: v0.1.9. 3 downloads" must read as one sentence, not a 12px split
+   Date: 2026-08-31
+   Related: [AT-0394] public/js/releases.js:paintLatestMeta, [AT-0013] public/js/releases.js:downloadAsset
+─────────────────────────────────────────────────────── */
+#latest-meta.latest-meta-row {
+  display: flex;
+  justify-content: center;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.35em;
+}
+#latest-meta .latest-meta-downloads {
+  white-space: nowrap;
+}
+.hero-shot {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: 36px 0 0;
+  border: 4px solid #111;
+  border-radius: 18px;
+  box-shadow: 5px 5px 0 #111;
+  background: #2448d6;
+}
+/* ─── Ariadne's Thread [AT-0457] ─────────────────────
+   What: Keep .hero-shot video in the same frame as the old hero.jpg img
+   Why:  Native video must fill the landing shot box without extra chrome
+   Date: 2026-09-03
+   Related: [AT-0457] components/LandingMain.tsx:.hero-shot, [AT-0263] app/site.css:.hero-shot
+─────────────────────────────────────────────────────── */
+video.hero-shot {
+  object-fit: contain;
+  vertical-align: top;
+}
+/* ─── Ariadne's Thread [AT-0264] ─────────────────────
+   What: Founder row under .hero-shot uses card chrome, circular avatar, yellow handle
+   Why:  Intro block must match SeenShot borders/shadow, not the light digest card
+   Date: 2026-08-27
+   Related: [AT-0263] public/index.html, [AT-0014] public/css/site.css:.hero-shot
+─────────────────────────────────────────────────────── */
+.founder {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  width: 100%;
+  margin: 16px 0 0;
+  padding: 16px 18px;
+  border: 4px solid #111;
+  border-radius: 18px;
+  box-shadow: 5px 5px 0 #111;
+  background: #2448d6;
+  text-align: left;
+}
+.founder img {
+  width: 72px;
+  height: 72px;
+  flex-shrink: 0;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 3px solid #111;
+  background: var(--paper);
+}
+.founder-copy {
+  min-width: 0;
+  flex: 1;
+}
+.founder-head {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.3;
+}
+.founder-name {
+  font-weight: 800;
+}
+/* ─── Ariadne's Thread [AT-0544] ─────────────────────
+   What: Keep landing a.founder-name at font-weight 800 and #fff
+   Why:  .founder a is 700 and would paint Alex Ign lighter than the name span
+   Date: 2026-09-05
+   Related: [AT-0544] components/LandingMain.tsx:a.founder-name, [AT-0348] app/site.css:.founder a
+─────────────────────────────────────────────────────── */
+.founder a.founder-name {
+  font-weight: 800;
+  color: #fff;
+}
+/* ─── Ariadne's Thread [AT-0348] ─────────────────────
+   What: Paint .founder-handle #fff
+   Why:  @aleksey_ignatov must match white page links, not --yellow
+   Date: 2026-08-28
+   Related: [AT-0342] public/css/site.css:a, [AT-0263] public/index.html, https://developer.mozilla.org/en-US/docs/Web/CSS/color
+─────────────────────────────────────────────────────── */
+.founder-handle {
+  color: #fff;
+  font-weight: 700;
+  margin-left: 8px;
+}
+.founder p {
+  margin: 8px 0 0;
+  font-size: 15px;
+  line-height: 1.45;
+  opacity: 0.95;
+}
+.founder a {
+  color: #fff;
+  font-weight: 700;
+}
+h2 {
+  margin: 56px 0 16px;
+  font-size: 22px;
+}
+/* ─── Ariadne's Thread [AT-0550] ─────────────────────
+   What: Drop the first /pricing h2 top margin
+   Why:  Dedicated Pricing page has no Compare block above the heading
+   Date: 2026-09-05
+   Related: [AT-0550] app/(site)/pricing/page.tsx, [AT-0244] app/site.css:.pricing
+─────────────────────────────────────────────────────── */
+main.landing > h2#pricing:first-child {
+  margin-top: 0;
+}
+/* ─── Ariadne's Thread [AT-0560] ─────────────────────
+   What: Style #pricing-refunds like .site-foot legal links
+   Why:  Refunds on /pricing must match the footer nav chrome it left
+   Date: 2026-09-05
+   Related: [AT-0560] app/(site)/pricing/page.tsx:#pricing-refunds, [AT-0341] app/site.css:.site-foot a
+─────────────────────────────────────────────────────── */
+.pricing-refunds {
+  margin: 16px 0 0;
+  text-align: center;
+}
+.pricing-refunds a {
+  color: #fff;
+  font-weight: 800;
+  text-decoration: none;
+  font-size: 14px;
+}
+.pricing-refunds a:hover {
+  text-decoration: underline;
+}
+.release,
+.card {
+  margin: 0 0 12px;
+  padding: 16px 18px;
+  border: 4px solid #111;
+  border-radius: 18px;
+  background: #2448d6;
+  box-shadow: 5px 5px 0 #111;
+}
+.release-top {
+  display: flex;
+  gap: 12px;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+/* ─── Ariadne's Thread [AT-0390] ─────────────────────
+   What: Put GitHub download_count on the right of each .release-top
+   Why:  /releases/ cards must show how many times that DMG was downloaded
+   Date: 2026-08-31
+   Related: [AT-0390] public/js/releases.js:releaseCard, [AT-0389] public/css/site.css:#latest-meta.latest-meta-row
+─────────────────────────────────────────────────────── */
+.release-top-aside {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: 12px;
+}
+.release-downloads {
+  white-space: nowrap;
+}
+.release a { color: #fff; font-weight: 700; }
+.notes {
+  margin: 10px 0 0;
+  white-space: pre-wrap;
+  font-size: 13px;
+  line-height: 1.45;
+  opacity: 0.9;
+}
+.previous-releases { margin: 20px 0 0; }
+.previous-releases summary {
+  cursor: pointer;
+  font-weight: 800;
+  font-size: 16px;
+  margin: 0 0 12px;
+}
+.error, .empty {
+  padding: 16px 18px;
+  border: 4px solid #111;
+  border-radius: 18px;
+  background: #1d3bb8;
+}
+.error a, .empty a { color: #fff; }
+/* ─── Ariadne's Thread [AT-0415] ─────────────────────
+   What: Keep #empty a.download at #111 and stack Download above the hint in the card
+   Why:  .empty a { color: #fff } would paint the Apple pill white on white
+   Date: 2026-09-03
+   Related: [AT-0415] public/space/index.html:#empty, [AT-0344] public/css/site.css:.download
+─────────────────────────────────────────────────────── */
+.empty a.download {
+  color: #111;
+}
+.empty-wrap:not([hidden]) {
+  margin: 0 0 24px;
+}
+/* ─── Ariadne's Thread [AT-0433] ─────────────────────
+   What: Center #empty flex children including .download-wrap and the hint
+   Why:  Left-aligned #empty kept the macOS download on the left of the card
+   Date: 2026-09-03
+   Related: [AT-0415] app/site.css:.empty-wrap .empty, [AT-0433] app/site.css:#empty .download-wrap
+─────────────────────────────────────────────────────── */
+.empty-wrap .empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  margin: 0;
+  box-sizing: border-box;
+  text-align: center;
+}
+.empty-wrap .empty > p {
+  margin: 0;
+}
+.bento {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+.bento-card {
+  min-width: 0;
+  padding: 18px;
+  border: 4px solid #111;
+  border-radius: 18px;
+  background: #2448d6;
+  box-shadow: 5px 5px 0 #111;
+}
+.bento-card.wide { grid-column: span 2; }
+.bento-card.narrow { grid-column: span 1; }
+.bento-card.full {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 18px;
+  align-items: center;
+}
+.bento-shot-wrap {
+  width: 100%;
+  min-height: 220px;
+  aspect-ratio: 16 / 10;
+  margin: 0 0 14px;
+  overflow: hidden;
+  border: 3px solid #111;
+  border-radius: 12px;
+  background: #1d3bb8;
+}
+.bento-card.full .bento-shot-wrap {
+  margin: 0;
+  min-height: 280px;
+  height: 100%;
+  aspect-ratio: auto;
+}
+.bento-card.full .bento-copy { min-width: 0; }
+.bento-shot {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+}
+/* ─── Ariadne's Thread [AT-0483] ─────────────────────
+   What: Keep video.bento-shot filling the same wrap as bento imgs
+   Why:  Native HTML video must cover the Blur card frame without extra chrome
+   Date: 2026-09-04
+   Related: [AT-0483] components/LandingMain.tsx:video.bento-shot, [AT-0457] app/site.css:video.hero-shot, https://developer.mozilla.org/en-US/docs/Web/CSS/object-fit
+─────────────────────────────────────────────────────── */
+video.bento-shot {
+  object-fit: cover;
+  vertical-align: top;
+}
+.bento-card h3 { margin: 0 0 6px; font-size: 22px; }
+.bento-card p { margin: 0; font-size: 14px; opacity: 0.9; }
+/* ─── Ariadne's Thread [AT-0488] ─────────────────────
+   What: Stack .bento-card .lede-agents under the Share card copy
+   Why:  The same Instant sharing marks must sit below Supports all AI Agents, not inline
+   Date: 2026-09-04
+   Related: [AT-0488] components/LandingMain.tsx:.bento-card.narrow, [AT-0451] app/site.css:.lede-agents, https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_flexible_box_layout
+─────────────────────────────────────────────────────── */
+.bento-card .lede-agents {
+  display: flex;
+  margin-top: 8px;
+  justify-content: flex-start;
+}
+/* ─── Ariadne's Thread [AT-0476] ─────────────────────
+   What: Masonry Wall of Love cards between Features and Pricing
+   Why:  IH launch comments must match site card chrome and link to each comment
+   Date: 2026-09-03
+   Related: [AT-0475] components/WallOfLove.tsx, [AT-0474] content/wall-of-love.ts
+─────────────────────────────────────────────────────── */
+.wall-of-love {
+  width: 100%;
+  margin: 0;
+}
+.wall-of-love-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  columns: 2;
+  column-gap: 16px;
+}
+.wall-of-love-card {
+  break-inside: avoid;
+  margin: 0 0 16px;
+}
+.wall-of-love-link {
+  display: block;
+  padding: 14px 16px;
+  border: 4px solid #111;
+  border-radius: 18px;
+  background: #2448d6;
+  box-shadow: 5px 5px 0 #111;
+  color: #fff;
+  text-decoration: none;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+.wall-of-love-link:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 6px 6px 0 #111;
+  text-decoration: none;
+}
+.wall-of-love-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 10px;
+}
+.wall-of-love-avatar {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 2px solid #111;
+  background: var(--paper);
+}
+.wall-of-love-who {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 6px;
+  min-width: 0;
+  font-size: 13px;
+  line-height: 1.3;
+}
+.wall-of-love-name {
+  font-weight: 800;
+}
+.wall-of-love-handle {
+  font-weight: 700;
+  opacity: 0.9;
+}
+.wall-of-love-body p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.45;
+  opacity: 0.95;
+}
+.wall-of-love-body p + p {
+  margin-top: 10px;
+}
+@media (max-width: 640px) {
+  .wall-of-love-grid {
+    columns: 1;
+  }
+}
+/* ─── Ariadne's Thread [AT-0520] ─────────────────────
+   What: Style the 96-row Compare matrix with pillar group rows and a sticky Feature column
+   Why:  Price plus the landscape map overflows the 720px landing column and must stay readable
+   Date: 2026-09-05
+   Related: [AT-0520] components/LandingMain.tsx:.compare-section, [AT-0476] app/site.css:.wall-of-love
+─────────────────────────────────────────────────────── */
+.compare-section {
+  width: 100%;
+  margin: 0;
+}
+.compare-wrap {
+  overflow-x: auto;
+  margin: 0;
+}
+.compare {
+  width: 100%;
+  min-width: 1280px;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.compare th,
+.compare td {
+  border: 2px solid #111;
+  padding: 6px 8px;
+  text-align: left;
+  vertical-align: top;
+  background: #2448d6;
+  color: #fff;
+}
+.compare th {
+  font-size: 12px;
+  font-weight: 800;
+}
+.compare th:first-child,
+.compare td:first-child,
+.compare tbody th {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  min-width: 220px;
+  max-width: 260px;
+  background: #2448d6;
+}
+.compare thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+.compare thead th:first-child {
+  z-index: 3;
+}
+.compare-group th {
+  background: #1a36a8;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 11px;
+  position: sticky;
+  left: 0;
+  z-index: 2;
+}
+.compare th[data-app="SeenShot"],
+.compare td[data-app="SeenShot"] {
+  font-weight: 800;
+}
+/* ─── Ariadne's Thread [AT-0546] ─────────────────────
+   What: Paint SeenShot Compare Description and Price at font-weight 400
+   Why:  td[data-app=SeenShot] is 800 and made those cells heavier than Zight .compare-desc
+   Date: 2026-09-05
+   Related: [AT-0521] app/site.css:.compare-desc, [AT-0520] app/site.css:.compare-price, [AT-0531] app/site.css:.compare tbody th
+─────────────────────────────────────────────────────── */
+.compare td[data-app="SeenShot"].compare-desc,
+.compare td[data-app="SeenShot"].compare-price {
+  font-weight: 400;
+}
+.compare-price {
+  font-size: 12px;
+  line-height: 1.35;
+  font-variant-numeric: tabular-nums;
+}
+/* ─── Ariadne's Thread [AT-0531] ─────────────────────
+   What: Paint Compare feature-name th with the same type as .compare-price
+   Why:  The Feature column must not stay at font-weight 800 while Price cells use 12px regular
+   Date: 2026-09-05
+   Related: [AT-0520] app/site.css:.compare-price, [AT-0520] app/site.css:.compare th
+─────────────────────────────────────────────────────── */
+.compare tbody tr[data-feature] > th[scope="row"] {
+  font-size: 12px;
+  line-height: 1.35;
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+}
+/* ─── Ariadne's Thread [AT-0521] ─────────────────────
+   What: Style the Compare Description cells above Price
+   Why:  Landscape shape copy must wrap, not center like Yes/No
+   Date: 2026-09-05
+   Related: [AT-0521] components/LandingMain.tsx:.compare-desc, [AT-0520] app/site.css:.compare-price
+─────────────────────────────────────────────────────── */
+.compare-desc {
+  font-size: 12px;
+  line-height: 1.35;
+  text-align: left;
+}
+/* ─── Ariadne's Thread [AT-0541] ─────────────────────
+   What: Paint Compare f104 SeenShot LedeAgents with inherit color and wrap
+   Why:  .lede-agents uses var(--paper); the matrix cell is #2448d6 and must show the same marks as Share
+   Date: 2026-09-05
+   Related: [AT-0541] components/LandingMain.tsx:.compare-agents, [AT-0451] app/site.css:.lede-agents, https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_flexible_box_layout
+─────────────────────────────────────────────────────── */
+.compare td.compare-agents .lede-agents {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  color: inherit;
+}
+.compare td[data-cell="Yes"],
+.compare td[data-cell="No"],
+.compare td[data-cell="—"] {
+  text-align: center;
+}
+.compare td a,
+.compare th a {
+  color: #fff;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+/* ─── Ariadne's Thread [AT-0244] ─────────────────────
+   What: Two pricing cards: Free forever and Member $29/year
+   Why:  Landing Pricing must sit in the same card chrome as Features
+   Date: 2026-08-27
+   Related: [AT-0243] public/index.html, [AT-0014] public/css/site.css:.bento-card
+─────────────────────────────────────────────────────── */
+/* ─── Ariadne's Thread [AT-0378] ─────────────────────
+   What: Stack .pricing cards in one column
+   Why:  Free and Member must sit one under the other, not side by side
+   Date: 2026-08-29
+   Related: [AT-0244] public/css/site.css:.pricing, [AT-0243] public/index.html
+─────────────────────────────────────────────────────── */
+.pricing {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+.pricing-card {
+  min-width: 0;
+  padding: 18px;
+  border: 4px solid #111;
+  border-radius: 18px;
+  background: #2448d6;
+  box-shadow: 5px 5px 0 #111;
+}
+/* ─── Ariadne's Thread [AT-0380] ─────────────────────
+   What: Wrap pricing title and price in a flex row
+   Why:  Member $29 / year and Free Forever must stay on one line; grid stretched h3 to full width
+   Date: 2026-08-29
+   Related: [AT-0379] public/css/site.css:.pricing-card, [AT-0380] public/index.html:.pricing-head
+─────────────────────────────────────────────────────── */
+.pricing-head {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: baseline;
+  gap: 10px;
+  margin: 0 0 16px;
+}
+.pricing-card h3 {
+  margin: 0;
+  font-size: 22px;
+  width: auto;
+}
+.pricing-price {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+}
+.pricing-note {
+  margin: 0 0 16px;
+  font-size: 14px;
+  line-height: 1.45;
+  opacity: 0.9;
+}
+.pricing-card ul {
+  margin: 0 0 18px;
+  padding: 0 0 0 1.2em;
+  font-size: 14px;
+  line-height: 1.45;
+  opacity: 0.9;
+}
+.pricing-card li {
+  margin: 0 0 6px;
+}
+/* ─── Ariadne's Thread [AT-0451] ─────────────────────
+   What: Align .pricing-card .lede-agents with Instant sharing with: text
+   Why:  20px marks sit on the first Free list row after the copy
+   Date: 2026-09-03
+   Related: [AT-0451] components/LandingMain.tsx:.pricing-card ul, [AT-0402] app/site.css:.lede-agents
+─────────────────────────────────────────────────────── */
+.pricing-card .lede-agents {
+  vertical-align: middle;
+}
+/* ─── Ariadne's Thread [AT-0381] ─────────────────────
+   What: Size .pricing-card .download to max-content
+   Why:  Pricing Download pills stretched to the card width
+   Date: 2026-08-29
+   Related: [AT-0367] public/css/site.css:.download:has(.download-apple), [AT-0344] public/css/site.css:.download
+─────────────────────────────────────────────────────── */
+/* ─── Ariadne's Thread [AT-0411] ─────────────────────
+   What: Ellipsis .pricing-card .download-label when the pill is capped at the card
+   Why:  width:max-content plus wrap left Download Free for macOS at 120x66 in Free and Member
+   Date: 2026-09-01
+   Related: [AT-0408] public/css/site.css:.download-label, [AT-0381] public/css/site.css:.pricing-card .download, https://developer.mozilla.org/en-US/docs/Web/CSS/text-overflow
+─────────────────────────────────────────────────────── */
+.pricing-card .download,
+.pricing-card .corporate-contact {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  width: auto;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+.pricing-card .download-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* ─── Ariadne's Thread [AT-0565] ─────────────────────
+   What: Style landing FAQ details like pricing cards
+   Why:  FAQ must reuse the native disclosure and the same blue card chrome
+   Date: 2026-09-05
+   Related: [AT-0565] components/LandingFaq.tsx, [AT-0379] app/site.css:.pricing-card, https://developer.mozilla.org/en-US/docs/Web/HTML/Element/details
+─────────────────────────────────────────────────────── */
+.faq {
+  display: grid;
+  gap: 12px;
+  width: 100%;
+  margin: 0;
+}
+/* ─── Ariadne's Thread [AT-0566] ─────────────────────
+   What: Keep the FAQ JSON-LD script out of the FAQ grid
+   Why:  A grid item for application/ld+json would add an empty 12px gap
+   Date: 2026-09-05
+   Related: [AT-0566] components/LandingFaq.tsx:#faq-jsonld, [AT-0565] app/site.css:.faq
+─────────────────────────────────────────────────────── */
+.faq > script {
+  display: none;
+}
+/* ─── Ariadne's Thread [AT-0569] ─────────────────────
+   What: Hide application/ld+json scripts in layout
+   Why:  JSON-LD must not become a visible grid or article child
+   Date: 2026-09-05
+   Related: [AT-0569] components/JsonLdScript.tsx, [AT-0566] app/site.css:.faq > script
+─────────────────────────────────────────────────────── */
+script[type="application/ld+json"] {
+  display: none;
+}
+.faq details {
+  min-width: 0;
+  padding: 18px;
+  border: 4px solid #111;
+  border-radius: 18px;
+  background: #2448d6;
+  box-shadow: 5px 5px 0 #111;
+}
+.faq summary {
+  cursor: pointer;
+  font-size: 18px;
+  font-weight: 800;
+}
+.faq p {
+  margin: 12px 0 0;
+  font-size: 14px;
+  line-height: 1.45;
+  opacity: 0.9;
+}
+.cabinet-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin: 0 0 24px;
+}
+/* ─── Ariadne's Thread [AT-0434] ─────────────────────
+   What: Stack .cabinet-title h1 above #nav-quota
+   Why:  My Screenshots and Member quota sat on one row
+   Date: 2026-09-03
+   Related: [AT-0073] app/site.css:.cabinet-head .nav-quota, [AT-0078] components/SpaceMain.tsx:.cabinet-title
+─────────────────────────────────────────────────────── */
+.cabinet-title {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  min-width: 0;
+}
+.cabinet-head h1 {
+  margin: 0;
+  font-size: clamp(28px, 5vw, 42px);
+  white-space: normal;
+}
+/* ─── Ariadne's Thread [AT-0073] ─────────────────────
+   What: Style #nav-quota to the right of My Screenshots
+   Why:  Remaining storage left the top nav; it sits on the cabinet title row
+   Date: 2026-08-27
+   Related: [AT-0079] public/js/nav.js:paint, [AT-0078] public/space/index.html
+─────────────────────────────────────────────────────── */
+.cabinet-head .nav-quota {
+  color: var(--paper);
+  font-weight: 800;
+  font-size: clamp(14px, 2.2vw, 18px);
+  opacity: 0.92;
+  white-space: nowrap;
+}
+/* ─── Ariadne's Thread [AT-0286] ─────────────────────
+   What: Group cabinet Upgrade to Pro and Download in one flex row
+   Why:  The two pills must stay together; cabinet-head space-between was spreading them
+   Date: 2026-08-27
+   Related: [AT-0285] public/space/index.html, [AT-0234] public/css/site.css:.hero-cta
+─────────────────────────────────────────────────────── */
+.cabinet-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+}
+/* ─── Ariadne's Thread [AT-0385] ─────────────────────
+   What: Style the /space/redem Polar code field and success card
+   Why:  Redeem lives on its own page; success must stay visible after plan=pro
+   Date: 2026-08-31
+   Related: [AT-0385] public/space/redem/index.html:#redeem-form, [AT-0286] public/css/site.css:.cabinet-actions
+─────────────────────────────────────────────────────── */
+.cabinet-redeem {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0 0 24px;
+  max-width: 560px;
+}
+.cabinet-redeem[hidden] {
+  display: none;
+}
+.cabinet-redeem label {
+  font-weight: 800;
+  font-size: 14px;
+}
+.cabinet-redeem-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+.cabinet-redeem input {
+  flex: 1 1 220px;
+  min-width: 0;
+  padding: 12px 14px;
+  border: 4px solid #111;
+  border-radius: 14px;
+  background: #2448d6;
+  color: var(--paper);
+  font-size: 16px;
+  font-family: inherit;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+.cabinet-redeem .download {
+  flex: 0 0 auto;
+}
+/* ─── Ariadne's Thread [AT-0432] ─────────────────────
+   What: Spin a CSS ring on #redeem-submit[aria-busy=true]
+   Why:  Redeem must show an in-button loader while Polar code verification is in flight
+   Date: 2026-09-03
+   Related: [AT-0385] lib/client/redem.ts:setRedeemBusy, https://developer.mozilla.org/en-US/docs/Web/CSS/@keyframes, https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Reference/Attributes/aria-busy
+─────────────────────────────────────────────────────── */
+#redeem-submit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 7.5em;
+}
+#redeem-submit[aria-busy="true"]::after {
+  content: "";
+  width: 1em;
+  height: 1em;
+  border: 3px solid #111;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: redeem-spin 0.6s linear infinite;
+}
+@keyframes redeem-spin {
+  to { transform: rotate(360deg); }
+}
+.cabinet-redeem-status {
+  margin: 0 0 24px;
+  max-width: 560px;
+}
+.cabinet-redeem-status.error,
+.cabinet-redeem-status.empty {
+  padding: 12px 14px;
+}
+/* ─── Ariadne's Thread [AT-0433] ─────────────────────
+   What: Center #redeem-ok on the Redeem page and center its inner copy
+   Why:  Success Member card sat at the left of main.page-redem
+   Date: 2026-09-03
+   Related: [AT-0385] components/RedemMain.tsx:#redeem-ok, [AT-0432] app/site.css:#redeem-submit
+─────────────────────────────────────────────────────── */
+.cabinet-redeem-ok {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin: 0 auto 24px;
+  max-width: 560px;
+  padding: 18px;
+  border: 4px solid #111;
+  border-radius: 18px;
+  box-shadow: 5px 5px 0 #111;
+  background: var(--yellow);
+  color: var(--ink);
+  text-align: center;
+}
+.cabinet-redeem-ok[hidden] {
+  display: none;
+}
+.cabinet-redeem-ok h2 {
+  margin: 0;
+  font-size: 22px;
+}
+.cabinet-redeem-ok p {
+  margin: 0;
+  font-weight: 700;
+}
+.feed {
+  column-count: 4;
+  column-gap: 16px;
+}
+.pin {
+  break-inside: avoid;
+  margin: 0 0 16px;
+  display: block;
+}
+.pin a { display: block; color: inherit; text-decoration: none; position: relative; }
+.pin img {
+  width: 100%;
+  height: auto;
+  display: block;
+  border: 4px solid #111;
+  border-radius: 18px;
+  box-shadow: 5px 5px 0 #111;
+  background: #2448d6;
+}
+/* ─── Ariadne's Thread [AT-0068] ─────────────────────
+   What: CSS skeleton on .pin until the img load event
+   Why:  Native <progress> was a bar; in-viewport pins sat empty at 180px
+   Date: 2026-08-27
+   Related: [AT-0069] public/js/cabinet.js:render, [AT-0062] public/css/site.css:.pin
+─────────────────────────────────────────────────────── */
+@keyframes pin-skeleton {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+.pin:not(.is-loaded) a {
+  min-height: 180px;
+  border: 4px solid #111;
+  border-radius: 18px;
+  box-shadow: 5px 5px 0 #111;
+  background-color: #2448d6;
+  background-image: linear-gradient(90deg, #2448d6 0%, #4d6aff 50%, #2448d6 100%);
+  background-size: 200% 100%;
+  animation: pin-skeleton 1.2s linear infinite;
+}
+.pin:not(.is-loaded) img {
+  min-height: 180px;
+  opacity: 0;
+  border: 0;
+  box-shadow: none;
+}
+.pin.is-loaded a {
+  min-height: 0;
+  border: 0;
+  box-shadow: none;
+  background: none;
+  animation: none;
+}
+/* ─── Ariadne's Thread [AT-0084] ─────────────────────
+   What: Caption under each .pin with the PNG byte size
+   Why:  Cabinet feed showed images only; size comes from shot.bytes
+   Date: 2026-08-27
+   Related: [AT-0083] public/js/cabinet.js:formatShotBytes, [AT-0069] public/js/cabinet.js:render
+─────────────────────────────────────────────────────── */
+.pin-bytes {
+  margin: 8px 4px 0;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--paper);
+  opacity: 0.85;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pin:not(.is-loaded) a {
+    animation: none;
+  }
+}
+.auth-form {
+  width: min(420px, 100%);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex-shrink: 0;
+}
+/* ─── Ariadne's Thread [AT-0376] ─────────────────────
+   What: Restore .google-auth chrome for the Firebase Google button
+   Why:  Sign in / Sign up with Google must match the previous SeenShot control
+   Date: 2026-08-29
+   Related: [AT-0376] public/signin.html:#google-auth, [AT-0333] public/css/site.css:.google-auth
+─────────────────────────────────────────────────────── */
+.google-auth {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin: 2px 0 4px;
+  padding: 12px 14px;
+  border: 4px solid #111;
+  border-radius: 14px;
+  background: #fff;
+  color: #111;
+  font-family: inherit;
+  font-weight: 800;
+  font-size: 16px;
+  line-height: 1.2;
+  box-shadow: 5px 5px 0 #111;
+  cursor: pointer;
+}
+.google-auth:hover {
+  transform: translate(-1px, -1px);
+}
+.google-auth:disabled {
+  opacity: 0.6;
+  cursor: pointer;
+  transform: none;
+}
+.google-auth-g-plate {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  background: #fff;
+}
+.google-auth-g {
+  display: block;
+  width: 20px;
+  height: 20px;
+}
+.auth-form label { font-weight: 800; font-size: 14px; }
+.auth-form input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 4px solid #111;
+  border-radius: 14px;
+  background: #2448d6;
+  color: var(--paper);
+  font-size: 16px;
+  font-family: inherit;
+}
+/* ─── Ariadne's Thread [AT-0345] ─────────────────────
+   What: Keep Forgot password and Generate password in the same in-field slot
+   Why:  Sign In asked Forgot inside #password; Create account already pins Generate there
+   Date: 2026-08-28
+   Related: [AT-0031] public/css/site.css:.password-field, [AT-0345] public/signin.html:#forgot, https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input
+─────────────────────────────────────────────────────── */
+.password-field {
+  position: relative;
+  width: 100%;
+}
+.auth-form .password-field input {
+  padding-right: 44px;
+}
+.auth-form .password-field.has-generate input {
+  padding-right: 178px;
+}
+.generate-password {
+  position: absolute;
+  right: 42px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: 0;
+  padding: 0;
+  color: #fff;
+  font-weight: 800;
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.generate-password:disabled {
+  opacity: 0.6;
+  cursor: pointer;
+}
+.toggle-password {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--paper);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.toggle-password:disabled {
+  opacity: 0.6;
+  cursor: pointer;
+}
+.toggle-password .eye-closed {
+  display: none;
+}
+.toggle-password[aria-pressed="true"] .eye-open {
+  display: none;
+}
+.toggle-password[aria-pressed="true"] .eye-closed {
+  display: block;
+}
+.auth-form .download {
+  align-self: center;
+}
+.auth-form .create-account {
+  align-self: center;
+  text-align: center;
+  margin-top: 18px;
+}
+.auth-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+/* ─── Ariadne's Thread [AT-0020] ─────────────────────
+   What: Sign-in flat links are white
+   Why:  Create account, Forgot password, Email me a sign-in link must not be yellow
+   Date: 2026-08-27
+   Related: [AT-0016] public/signin.html, [AT-0010] public/js/signin.js
+─────────────────────────────────────────────────────── */
+.flat {
+  background: none;
+  border: 0;
+  color: #fff;
+  font-weight: 800;
+  font-family: inherit;
+  cursor: pointer;
+  padding: 0;
+  font-size: 14px;
+  text-decoration: none;
+}
+.share-page { text-align: center; width: min(960px, calc(100% - 32px)); }
+.share-shot {
+  width: 100%;
+  height: auto;
+  border: 4px solid #111;
+  border-radius: 18px;
+  box-shadow: 5px 5px 0 #111;
+  background: #2448d6;
+}
+.share-actions {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  margin: 22px 0 0;
+}
+.text-link {
+  color: #fff;
+  font-weight: 800;
+  text-decoration: none;
+}
+/* ─── Ariadne's Thread [AT-0251] ─────────────────────
+   What: Footer legal links and .legal article type for policy pages
+   Why:  GDPR/US pages need readable copy in the same card chrome
+   Date: 2026-08-27
+   Related: [AT-0250] public/privacy/index.html, [AT-0252] public/index.html
+─────────────────────────────────────────────────────── */
+.site-foot {
+  width: min(720px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 0 0 48px;
+  /* ─── Ariadne's Thread [AT-0322] ─────────────────────
+     What: Pin .site-foot to the bottom of the body flex column
+     Why:  Short pages left the footer under main with empty viewport below
+     Date: 2026-08-28
+     Related: [AT-0251] public/css/site.css:.site-foot, [AT-0290] public/css/site.css:body:has(main.page), https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_flexible_box_layout
+  ─────────────────────────────────────────────────────── */
+  margin-top: auto;
+  flex-shrink: 0;
+}
+/* ─── Ariadne's Thread [AT-0336] ─────────────────────
+   What: Center .site-foot legal links on full-width main.page pages
+   Why:  space-between left the nav after the operator line was removed
+   Date: 2026-08-28
+   Related: [AT-0290] public/css/site.css:body:has(main.page) .site-foot, [AT-0324] public/index.html
+─────────────────────────────────────────────────────── */
+body:has(main.page) .site-foot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  width: 100%;
+  margin: 0;
+  margin-top: auto;
+  padding: 0 2.5% 48px;
+}
+/* ─── Ariadne's Thread [AT-0396] ─────────────────────
+   What: Center #site-version above the footer legal nav
+   Why:  Latest GitHub tag must not sit under the landing Download CTA
+   Date: 2026-09-01
+   Related: [AT-0396] public/js/releases.js:paintFooterVersion, [AT-0251] public/css/site.css:.site-foot
+─────────────────────────────────────────────────────── */
+/* ─── Ariadne's Thread [AT-0617] ─────────────────────
+   What: Sit #site-version to the right of the Releases footer label
+   Why:  The GitHub tag must share the Releases link row, not a line above the nav
+   Date: 2026-09-05
+   Related: [AT-0617] components/SiteChrome.tsx:SiteFooter, [AT-0396] lib/client/releases.ts:paintFooterVersion
+─────────────────────────────────────────────────────── */
+.site-foot a[href="/releases/"] {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+}
+.site-version {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  opacity: 0.85;
+}
+.site-foot a .site-version {
+  font-weight: 600;
+}
+.site-version[hidden] {
+  display: none;
+}
+.site-foot nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px 16px;
+}
+/* ─── Ariadne's Thread [AT-0341] ─────────────────────
+   What: Color .site-foot legal links #fff
+   Why:  Footer nav must match white header/brand chrome, not yellow Download
+   Date: 2026-08-28
+   Related: [AT-0251] public/css/site.css:.site-foot, [AT-0020] public/css/site.css:.flat
+─────────────────────────────────────────────────────── */
+.site-foot a {
+  color: #fff;
+  font-weight: 800;
+  text-decoration: none;
+  font-size: 14px;
+}
+.site-foot a:hover { text-decoration: underline; }
+/* ─── Ariadne's Thread [AT-0393] ─────────────────────
+   What: Keep Code Market partners widget full-width under .site-foot nav
+   Why:  body:has(main.page) .site-foot is flex; widget must wrap below legal links
+   Date: 2026-08-31
+   Related: [AT-0251] public/css/site.css:.site-foot, https://code.market/widget.min.js
+─────────────────────────────────────────────────────── */
+/* ─── Ariadne's Thread [AT-0469] ─────────────────────
+   What: Align Code Market and benchmark.directory badges in one footer row
+   Why:  Both listing badges must sit beside each other and wrap on narrow screens
+   Date: 2026-09-03
+   Related: [AT-0468] components/SiteChrome.tsx:.site-badges, [AT-0393] app/site.css:[data-codemarket-widget]
+─────────────────────────────────────────────────────── */
+.site-foot .site-badges {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  width: 100%;
+  flex-basis: 100%;
+  margin-top: 16px;
+}
+.site-foot [data-codemarket-widget] {
+  width: auto;
+  flex: 0 0 auto;
+  margin-top: 0;
+  text-align: center;
+}
+.site-foot [data-codemarket-widget] a:hover,
+.site-foot .site-badges > a:hover {
+  text-decoration: none;
+}
+.legal-page {
+  width: min(720px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 32px 0 24px;
+}
+.legal h1 {
+  margin: 0 0 8px;
+  font-size: 28px;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  white-space: normal;
+}
+/* ─── Ariadne's Thread [AT-0481] ─────────────────────
+   What: Row .releases-head with h1 left and arm64 / x86 tabs right
+   Why:  /releases/ must switch the GitHub DMG list without a second page
+   Date: 2026-09-04
+   Related: [AT-0481] app/(site)/releases/page.tsx, [AT-0357] lib/client/releases.ts:paintReleaseList, https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_flexible_box_layout
+─────────────────────────────────────────────────────── */
+.releases-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 8px;
+}
+.releases-head h1 {
+  margin: 0;
+}
+.releases-arch {
+  display: inline-flex;
+  flex-shrink: 0;
+  border: 3px solid #111;
+  border-radius: 999px;
+  overflow: hidden;
+  background: #fff;
+}
+.releases-arch [role="tab"] {
+  margin: 0;
+  padding: 8px 14px;
+  border: 0;
+  border-radius: 0;
+  background: #fff;
+  color: #111;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.2;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.releases-arch [role="tab"][aria-selected="true"] {
+  background: #111;
+  color: #fff;
+}
+.releases-arch [role="tab"]:hover {
+  text-decoration: none;
+}
+/* ─── Ariadne's Thread [AT-0616] ─────────────────────
+   What: Size the Apple mark on Releases arch tabs
+   Why:  The tab label sits next to the same Apple path as the Download pill
+   Date: 2026-09-05
+   Related: [AT-0616] app/(site)/releases/page.tsx:ReleasesMacMark, [AT-0423] components/DownloadPill.tsx:APPLE_PATH
+─────────────────────────────────────────────────────── */
+.releases-arch-apple {
+  display: block;
+  flex-shrink: 0;
+  fill: currentColor;
+}
+.legal h2 {
+  margin: 28px 0 10px;
+  font-size: 18px;
+}
+/* ─── Ariadne's Thread [AT-0351] ─────────────────────
+   What: Style .legal h3 for blog article subsections
+   Why:  Best ScreenShot Apps 2026 uses h3 user-type headings
+   Date: 2026-08-28
+   Related: [AT-0349] public/blog/best-screenshot-apps-2026/index.html, [AT-0251] public/css/site.css:.legal
+─────────────────────────────────────────────────────── */
+.legal h3 {
+  margin: 22px 0 8px;
+  font-size: 16px;
+}
+.legal p,
+.legal li {
+  font-size: 15px;
+  line-height: 1.5;
+  opacity: 0.95;
+}
+.legal ul,
+.legal ol {
+  margin: 0 0 16px;
+  padding: 0 0 0 1.2em;
+}
+/* ─── Ariadne's Thread [AT-0353] ─────────────────────
+   What: List-style-none for .blog-index on /blog/
+   Why:  Article list should not look like a legal bullet list
+   Date: 2026-08-28
+   Related: [AT-0349] public/blog/index.html, [AT-0251] public/css/site.css:.legal
+─────────────────────────────────────────────────────── */
+.blog-index {
+  list-style: none;
+  padding-left: 0;
+}
+/* ─── Ariadne's Thread [AT-0581] ─────────────────────
+   What: Justify /blog/ h1 left and By Alex Ign right
+   Why:  Title and author byline must sit at opposite ends of the card row
+   Date: 2026-09-05
+   Related: [AT-0580] app/site.css:.blog-index-head, [AT-0481] app/site.css:.releases-head, https://developer.mozilla.org/en-US/docs/Web/CSS/justify-content
+─────────────────────────────────────────────────────── */
+.blog-index-head {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 0 0 8px;
+  width: 100%;
+}
+.blog-index-head h1 {
+  margin: 0;
+}
+.blog-index-head .meta {
+  margin: 0;
+}
+.blog-index li {
+  margin: 0 0 18px;
+}
+/* ─── Ariadne's Thread [AT-0356] ─────────────────────
+   What: Style .legal figure.tool-shot homepage captures in the blog article
+   Why:  Best ScreenShot Apps 2026 shows each tool homepage inside the 720px card
+   Date: 2026-08-28
+   Related: [AT-0349] public/blog/best-screenshot-apps-2026/index.html, [AT-0251] public/css/site.css:.legal, https://developer.mozilla.org/en-US/docs/Web/HTML/Element/figure
+─────────────────────────────────────────────────────── */
+.legal figure.tool-shot {
+  margin: 16px 0 24px;
+  padding: 0;
+}
+.legal figure.tool-shot img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 3px solid #111;
+  border-radius: 12px;
+  box-shadow: 3px 3px 0 #111;
+  background: #111;
+}
+/* ─── Ariadne's Thread [AT-0359] ─────────────────────
+   What: Drop .legal figure.tool-shot figcaption styles
+   Why:  Blog tool screenshots must not show homepage captions
+   Date: 2026-08-28
+   Related: [AT-0356] public/css/site.css:.legal figure.tool-shot, [AT-0359] public/blog/best-screenshot-apps-2026/index.html
+─────────────────────────────────────────────────────── */
+/* ─── Ariadne's Thread [AT-0360] ─────────────────────
+   What: Paint article.legal.card background #fff and ink text
+   Why:  Blog article body must be a white card, not the blue .card fill
+   Date: 2026-08-28
+   Related: [AT-0251] public/css/site.css:.legal, [AT-0020] public/css/site.css:.card, https://developer.mozilla.org/en-US/docs/Web/CSS/background-color
+─────────────────────────────────────────────────────── */
+article.legal.card {
+  background: #fff;
+  color: var(--ink);
+}
+/* ─── Ariadne's Thread [AT-0363] ─────────────────────
+   What: Keep aside.founder paper text on the white blog article card
+   Why:  article.legal.card color ink would paint the author card dark on blue
+   Date: 2026-08-28
+   Related: [AT-0264] public/css/site.css:.founder, [AT-0360] public/css/site.css:article.legal.card, [AT-0363] public/blog/best-screenshot-apps-2026/index.html
+─────────────────────────────────────────────────────── */
+article.legal.card .founder {
+  color: var(--paper);
+  margin: 28px 0 0;
+}
+article.legal.card .founder p {
+  margin: 8px 0 0;
+}
+.legal a { color: var(--blue); font-weight: 700; }
+/* ─── Ariadne's Thread [AT-0370] ─────────────────────
+   What: Paint .release/.empty/.error inside article.legal.card as white ink cards
+   Why:  Landing #2448d6 fill plus .legal ink/blue links made /releases/ unreadable
+   Date: 2026-08-28
+   Related: [AT-0360] public/css/site.css:article.legal.card, [AT-0020] public/css/site.css:.release, [AT-0357] public/releases/index.html
+─────────────────────────────────────────────────────── */
+article.legal.card .release,
+article.legal.card .empty,
+article.legal.card .error {
+  background: #fff;
+  color: var(--ink);
+}
+article.legal.card .release a,
+article.legal.card .empty a,
+article.legal.card .error a {
+  color: var(--blue);
+}
+.legal code {
+  font-size: 0.92em;
+  word-break: break-all;
+}
+.legal table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  margin: 0 0 16px;
+}
+.legal th,
+.legal td {
+  border: 2px solid #111;
+  padding: 8px;
+  text-align: left;
+  vertical-align: top;
+}
+@media (max-width: 1000px) { .feed { column-count: 3; } }
+@media (max-width: 700px) { .feed { column-count: 2; } }
+@media (max-width: 600px) {
+  .bento { grid-template-columns: 1fr; }
+  .bento-card.wide,
+  .bento-card.narrow,
+  .bento-card.full { grid-column: 1; }
+  .bento-card.full { grid-template-columns: 1fr; }
+  .bento-card.full .bento-shot-wrap {
+    min-height: 220px;
+    aspect-ratio: 16 / 10;
+  }
+  .pricing { grid-template-columns: 1fr; }
+  h1 { white-space: normal; }
+  .founder {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  /* ─── Ariadne's Thread [AT-0409] ─────────────────────
+     What: Wrap .hero .lede and .lede-copy below 600px
+     Why:  nowrap plus centered flex pushed the sentence off the mobile viewport
+     Date: 2026-09-01
+     Related: [AT-0404] public/css/site.css:.hero .lede, [AT-0407] public/index.html:.lede-copy, https://developer.mozilla.org/en-US/docs/Web/CSS/white-space
+  ─────────────────────────────────────────────────────── */
+  .hero .lede {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    white-space: normal;
+    max-width: 100%;
+    min-width: 0;
+  }
+  .lede-copy {
+    flex: 1 1 100%;
+    min-width: 0;
+    max-width: 100%;
+    white-space: normal;
+    text-align: center;
+  }
+  /* ─── Ariadne's Thread [AT-0439] ─────────────────────
+     What: Flex landing .topnav below 600px: .brand left, .topnav-menu summary right
+     Why:  The 3-column subgrid left Menu and #nav-auth on top of SeenShot.app
+     Date: 2026-09-03
+     Related: [AT-0410] app/site.css:body:has(main.landing) .topnav, [AT-0438] components/SiteChrome.tsx:TopNav, https://developer.mozilla.org/en-US/docs/Web/HTML/Element/summary
+  ─────────────────────────────────────────────────────── */
+  body:has(main.landing) .topnav {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    flex-shrink: 0;
+    width: min(720px, calc(100% - 32px));
+    margin: 0 auto;
+    padding: 20px 0 12px;
+    background: var(--blue);
+  }
+  body:has(main.landing) .brand {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    min-width: 0;
+    flex: 1 1 0%;
+    color: #fff;
+    text-decoration: none;
+    font-weight: 800;
+    font-size: 18px;
+  }
+  body:has(main.landing) .brand-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+  }
+  body:has(main.landing) .brand img {
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+    object-fit: cover;
+    border-radius: 10px;
+    border: 3px solid #111;
+    box-shadow: 3px 3px 0 #111;
+    background: var(--blue);
+  }
+  body:has(main.landing) .brand-name {
+    font-weight: 800;
+    font-size: 18px;
+    line-height: 1.2;
+    min-width: 0;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+  body:has(main.landing) .brand .lede {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.35;
+    opacity: 0.92;
+    overflow-wrap: break-word;
+  }
+  /* ─── Ariadne's Thread [AT-0439] ─────────────────────
+     What: Absolutely position .topnav-menu[open] nav under .topnav below 600px
+     Why:  In-flow email next to Menu overlapped .brand-name; closed Menu must hide #nav-auth
+     Date: 2026-09-03
+     Related: [AT-0437] app/site.css:.topnav-menu, [AT-0438] components/SiteChrome.tsx:TopNav, https://developer.mozilla.org/en-US/docs/Web/CSS/position
+  ─────────────────────────────────────────────────────── */
+  .topnav:has(.topnav-menu) {
+    align-items: flex-start;
+    position: sticky;
+    top: 0;
+    z-index: 40;
+  }
+  .topnav-menu {
+    flex: 0 0 auto;
+    position: static;
+    z-index: 2;
+  }
+  .topnav-menu summary {
+    display: block;
+    list-style: none;
+    color: #fff;
+    font-weight: 800;
+    font-family: inherit;
+    font-size: inherit;
+    cursor: pointer;
+  }
+  .topnav-menu summary::-webkit-details-marker {
+    display: none;
+  }
+  .topnav-menu:not([open]) nav,
+  .topnav-menu:not([open])::details-content {
+    display: none !important;
+    content-visibility: hidden;
+  }
+  .topnav-menu[open] nav {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 12px;
+    margin: 8px 0 0;
+    padding: 14px 16px;
+    box-sizing: border-box;
+    z-index: 3;
+    background: var(--blue);
+    border: 4px solid #111;
+    border-radius: 18px;
+    box-shadow: 5px 5px 0 #111;
+  }
+  .topnav-menu nav a,
+  .topnav-menu nav .sign-out {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  /* ─── Ariadne's Thread [AT-0436] ─────────────────────
+     What: Wrap .download-label and #nav-quota below 600px instead of ellipsis/nowrap
+     Why:  Download Free for macOS clipped to Download Free for m... in #empty
+     Date: 2026-09-03
+     Related: [AT-0408] app/site.css:.download-label, [AT-0411] app/site.css:.pricing-card .download-label, [AT-0073] app/site.css:.cabinet-head .nav-quota
+  ─────────────────────────────────────────────────────── */
+  .download-label,
+  .pricing-card .download-label {
+    min-width: 0;
+    overflow: visible;
+    text-overflow: clip;
+    white-space: normal;
+  }
+  .cabinet-head .nav-quota {
+    color: var(--paper);
+    font-weight: 800;
+    font-size: clamp(14px, 2.2vw, 18px);
+    opacity: 0.92;
+    white-space: normal;
+  }
+}
+@media (max-width: 480px) { .feed { column-count: 1; } }
+
+/* ─── Ariadne's Thread [AT-0495] ─────────────────────
+   What: Scope Keenable SELECT report CSS under main.keenable-report
+   Why:  Host the original report look on seenshot.app without restyling into legal-card
+   Date: 2026-09-04
+   Related: [AT-0495] app/(site)/blog/screenshot-visual-privacy-apps-complete-feature-landscape/page.tsx, https://select.keenable.ai/r/screenshot-visual-privacy-apps-complete-feature-landscape/_w_aTNqt9ptOPYhxxIy5Tg
+─────────────────────────────────────────────────────── */
+
+main.keenable-report{margin:0;background:#fff;color:#111;font-family:'Stack Sans Headline',system-ui;font-size:16px;line-height:1.55}
+main.keenable-report .wrap{max-width:1160px;margin:0 auto;padding:56px 24px}
+main.keenable-report h1{font-size:46px;line-height:1.08;margin:0 0 24px;letter-spacing:-.01em}
+main.keenable-report h2{font-size:27px;margin:72px 0 16px}
+main.keenable-report h3{font-size:19px;margin:28px 0 8px}
+main.keenable-report h4{font-size:16px;margin:0 0 6px}
+main.keenable-report .asked{border-left:3px solid #111;padding:12px 18px;margin:0 0 28px;background:#F6F6F4}
+main.keenable-report .asked .lab{font-family:'TASA Orbiter',system-ui;font-size:12px;color:#8D8D8D;display:block;margin-bottom:4px}
+main.keenable-report .lede{font-size:19px;max-width:60em;margin:0 0 48px}
+main.keenable-report .findings div{padding:13px 0;border-top:1px solid #DDDDDD;font-size:15.5px}
+main.keenable-report .findings div:last-child{border-bottom:1px solid #DDDDDD}
+main.keenable-report a{color:#1F5FBF;text-decoration:none}main.keenable-report a:hover{text-decoration:underline}
+main.keenable-report svg text{font-family:'TASA Orbiter',system-ui}
+main.keenable-report .legend{font-family:'TASA Orbiter',system-ui;font-size:12px;color:#555;margin:8px 0 0}
+main.keenable-report .tt{position:fixed;pointer-events:none;background:#111;color:#fff;padding:9px 12px;font-family:'TASA Orbiter',system-ui;font-size:12px;max-width:320px;z-index:9;display:none;line-height:1.4}
+main.keenable-report .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0}
+main.keenable-report .pill{border-top:1px solid #DDD;padding:18px 20px 18px 0}
+main.keenable-report .pill ul{margin:2px 0 12px;padding-left:18px}
+main.keenable-report .pill li{font-size:13.5px;margin:3px 0}
+main.keenable-report .sub{font-family:'TASA Orbiter',system-ui;font-size:12px;color:#8D8D8D;margin-top:10px;text-transform:none}
+main.keenable-report .b{font-family:'TASA Orbiter',system-ui;font-size:10.5px;border:1px solid;padding:0 5px;white-space:nowrap}
+main.keenable-report table{border-collapse:collapse;width:100%;font-size:14px}
+main.keenable-report td, main.keenable-report th{border-top:1px solid #DDD;padding:9px 10px;text-align:left;vertical-align:top}
+main.keenable-report th{font-family:'TASA Orbiter',system-ui;font-size:12px;color:#8D8D8D;font-weight:600}
+main.keenable-report td.num{text-align:right;font-variant-numeric:tabular-nums}
+main.keenable-report .bdcat{border-top:1px solid #DDD;padding:14px 0}
+main.keenable-report .bdcat ul{margin:4px 0;padding-left:18px}main.keenable-report .bdcat li{font-size:14px;margin:3px 0}
+main.keenable-report .arch{display:grid;grid-template-columns:repeat(2,1fr);gap:0}
+main.keenable-report .arch>div{border-top:1px solid #DDD;padding:16px 20px 16px 0}
+main.keenable-report .arch p{font-size:14px;margin:4px 0}
+main.keenable-report .road{display:grid;grid-template-columns:repeat(4,1fr);gap:0}
+main.keenable-report .road>div{border-top:2px solid #111;padding:14px 16px 14px 0}
+main.keenable-report .road h4{font-size:15px}main.keenable-report .road ul{padding-left:16px;margin:6px 0}main.keenable-report .road li{font-size:13.5px;margin:4px 0}
+main.keenable-report .method{font-family:'TASA Orbiter',system-ui;font-size:12px;color:#8D8D8D;margin-top:72px;border-top:1px solid #DDD;padding-top:14px}@media(max-width:760px){main.keenable-report h1{font-size:30px}main.keenable-report .grid, main.keenable-report .arch, main.keenable-report .road{grid-template-columns:1fr}main.keenable-report .wrap{padding:32px 14px}main.keenable-report h2{margin-top:48px}main.keenable-report .tblwrap{overflow-x:auto}}
+main.keenable-report [data-keenable-bar]{position:fixed;top:0;left:0;right:0;z-index:2147483647;margin:0;padding:12px 20px;display:flex;flex-wrap:nowrap;align-items:center;justify-content:space-between;gap:12px;box-sizing:border-box;font:400 13px/1.4 'TASA Orbiter',system-ui,-apple-system,'Segoe UI',sans-serif;color:#5a5a5a;background:rgba(255,255,255,.95);border-bottom:1px solid #dddddd}main.keenable-report [data-keenable-bar-start]{display:flex;align-items:center;gap:20px;min-width:0}main.keenable-report [data-keenable-logo]{display:block;flex:0 1 auto;min-width:0;line-height:0}main.keenable-report [data-keenable-logo] img{display:block;width:180px;max-width:100%;height:auto}main.keenable-report [data-keenable-ask]{color:#005cff;text-decoration:underline;white-space:nowrap;font:400 20px 'TASA Orbiter',system-ui,-apple-system,'Segoe UI',sans-serif}main.keenable-report [data-keenable-ask]:focus-visible{outline:2px solid #005cff;outline-offset:2px}main.keenable-report [data-keenable-share-wrap]{position:relative;flex:none}main.keenable-report [data-keenable-share]{appearance:none;flex:none;box-sizing:border-box;display:inline-flex;align-items:center;gap:10px;padding:10px 20px;border:0;border-radius:999px;background:#2a2a2a;box-shadow:inset 0 0 0 999px rgba(255,255,255,0);transition:box-shadow 180ms ease;font:300 16px/20px 'Stack Sans Headline',system-ui,-apple-system,'Segoe UI',sans-serif;letter-spacing:-.01em;color:#fff;white-space:nowrap;cursor:pointer}main.keenable-report [data-keenable-share-icons]{display:inline-flex;align-items:center;gap:6px}main.keenable-report [data-keenable-share-icons] svg{display:block;width:14px;height:14px;fill:#fff}main.keenable-report [data-keenable-share]:hover{box-shadow:inset 0 0 0 999px rgba(255,255,255,.12)}main.keenable-report [data-keenable-share]:focus-visible{outline:2px solid #005cff;outline-offset:2px}@media (prefers-reduced-motion:reduce){main.keenable-report [data-keenable-share]{transition:none}}@media (max-width:719px){main.keenable-report [data-keenable-ask]{display:none}main.keenable-report [data-keenable-share-icons]{display:none}}
+main.keenable-report [data-keenable-share-popup]{position:absolute;top:calc(100% + 8px);right:0;z-index:1;width:min(320px,calc(100vw - 40px));box-sizing:border-box;padding:20px;border-radius:16px;background:#fff;border:1px solid #dddddd;box-shadow:0 16px 32px rgba(0,0,0,.14),0 2px 8px rgba(0,0,0,.08);font-family:'TASA Orbiter',system-ui,-apple-system,'Segoe UI',sans-serif;color:#2a2a2a;transform-origin:top right;opacity:0;transform:scale(.95) translateY(-4px);pointer-events:none;transition:opacity 120ms ease,transform 120ms ease}main.keenable-report [data-keenable-share-popup][hidden]{display:none}main.keenable-report [data-keenable-share-popup][data-open]{opacity:1;transform:scale(1) translateY(0);pointer-events:auto;transition:opacity 160ms cubic-bezier(.16,1,.3,1),transform 160ms cubic-bezier(.16,1,.3,1)}@media (prefers-reduced-motion:reduce){main.keenable-report [data-keenable-share-popup]{transition:none}}main.keenable-report [data-keenable-share-input]{display:flex;align-items:center;gap:8px;box-sizing:border-box;border:1px solid #dddddd;border-radius:999px;padding:4px 4px 4px 14px}main.keenable-report [data-keenable-share-input] input{flex:1;min-width:0;border:0;outline:0;background:transparent;padding:9px 0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:400 12px 'TASA Orbiter',system-ui,-apple-system,'Segoe UI',sans-serif;color:#5a5a5a}main.keenable-report [data-keenable-share-input] [data-keenable-copy]{appearance:none;flex:none;border:0;border-radius:999px;display:flex;align-items:center;gap:6px;padding:9px 16px;background:#2a2a2a;color:#fff;font:600 12px 'TASA Orbiter',system-ui,-apple-system,'Segoe UI',sans-serif;cursor:pointer;transition:background 180ms ease}main.keenable-report [data-keenable-share-input] [data-keenable-copy] svg{width:13px;height:13px;flex:none}main.keenable-report [data-keenable-share-input] [data-keenable-copy]:hover{background:#005cff}main.keenable-report [data-keenable-share-networks]{display:flex;gap:8px;margin-top:16px}main.keenable-report [data-keenable-share-networks] a{flex:1;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;gap:8px;padding:6px 2px 0;border-radius:10px;text-decoration:none;text-align:center;font:500 11px/1.3 'TASA Orbiter',system-ui,-apple-system,'Segoe UI',sans-serif;color:#5a5a5a;transition:background 180ms ease}main.keenable-report [data-keenable-share-networks] a:hover{background:#f6f6f6}main.keenable-report [data-keenable-share-networks] span{display:flex;align-items:center;justify-content:center;flex:none;width:40px;height:40px;border-radius:999px;color:#fff}main.keenable-report [data-keenable-share-networks] span svg{display:block;width:20px;height:20px;fill:#fff}main.keenable-report [data-keenable-share-popup] *:focus-visible{outline:2px solid #005cff;outline-offset:2px}main.keenable-report [data-keenable-share-networks] a[data-keenable-network="x"] span{background:#000000}main.keenable-report [data-keenable-share-networks] a[data-keenable-network="linkedin"] span{background:#0a66c2}main.keenable-report [data-keenable-share-networks] a[data-keenable-network="reddit"] span{background:#ff4500}
+main.keenable-report [data-keenable-card]{border-bottom-left-radius:22px;border-bottom-right-radius:22px;box-shadow:0 34px 54px rgba(0,0,0,.25)}main.keenable-report [data-keenable-footer]{position:fixed;left:0;right:0;bottom:0;z-index:-1;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;padding:91px 24px 0;background:#005cff;font-family:'Stack Sans Headline',system-ui,-apple-system,'Segoe UI',sans-serif;text-align:center}main.keenable-report [data-keenable-footer] p{margin:0;max-width:345px;font-weight:300;font-size:20px;line-height:1.1;letter-spacing:-.02em;color:#0342b3}main.keenable-report [data-keenable-footer] a{margin:62px 0 0;box-sizing:border-box;flex:none;display:flex;align-items:center;justify-content:center;width:249px;height:68px;border:2px solid rgba(255,255,255,.1);border-radius:14px;background:#005cff;box-shadow:0 3px 2.5px rgba(0,0,0,.25),inset 0 0 0 999px rgba(255,255,255,0);transition:box-shadow 180ms ease;font-weight:300;font-size:16px;line-height:20px;letter-spacing:-.01em;color:#fffdf7;text-decoration:none}main.keenable-report [data-keenable-footer] a:hover{box-shadow:0 10px 18px rgba(0,0,0,.35),inset 0 0 0 999px rgba(255,255,255,.05)}main.keenable-report [data-keenable-footer] a:active{box-shadow:0 1px 1.5px rgba(0,0,0,.25),inset 0 0 0 999px rgba(255,255,255,.05)}@media (prefers-reduced-motion:reduce){main.keenable-report [data-keenable-footer] a{transition:none}}main.keenable-report [data-keenable-footer] a:focus-visible{outline:2px solid #fffdf7;outline-offset:2px}main.keenable-report [data-keenable-footer] [data-keenable-aside]{margin:12px 0 0;width:71px;height:20px;display:block}main.keenable-report [data-keenable-footer] [data-keenable-wordmark]{margin:72px -24px 0;width:calc(100% + 48px);height:auto;display:block;max-width:none}@media (min-width:720px){main.keenable-report [data-keenable-footer]{padding-top:98px}main.keenable-report [data-keenable-footer] a{margin-top:36px}main.keenable-report [data-keenable-footer] [data-keenable-wordmark]{margin-top:4px}}main.keenable-report [data-keenable-legal]{box-sizing:border-box;max-width:720px;margin:48px auto 0;padding:0 24px 46px;font:400 12px/1.5 'TASA Orbiter',system-ui,-apple-system,'Segoe UI',sans-serif;letter-spacing:0;color:#8d8d8d;text-align:left}main.keenable-report [data-keenable-legal][data-keenable-legal-hosted]{max-width:none;margin:16px 0 0;padding:0 0 46px;grid-column:1/-1;text-align:inherit}main.keenable-report [data-keenable-legal] a{color:#005cff;text-decoration:none}main.keenable-report [data-keenable-legal] a:hover{text-decoration:underline;text-underline-offset:2px}
+main.keenable-report [data-keenable-card]{position:relative}main.keenable-report [data-keenable-track]{position:absolute;left:0;right:0;top:0;bottom:10px;z-index:2147483646;pointer-events:none;display:flex;flex-direction:column;justify-content:flex-end;align-items:center}main.keenable-report [data-keenable-plaque]{position:sticky;bottom:10px;flex:none;box-sizing:border-box;text-align:center;pointer-events:auto;padding:10px 20px;border-radius:14px;background:#005cff;box-shadow:inset 0 0 0 999px rgba(255,255,255,0);transition:box-shadow 180ms ease;font:700 14px/18px 'Stack Sans Headline',system-ui,-apple-system,'Segoe UI',sans-serif;letter-spacing:-.01em;word-spacing:.26em;color:#fffdf7;text-decoration:none;white-space:nowrap}main.keenable-report [data-keenable-plaque] [data-keenable-lede]{font-weight:300;color:rgba(255,255,255,.6)}main.keenable-report [data-keenable-plaque]:hover{box-shadow:inset 0 0 0 999px rgba(255,255,255,.08)}@media (prefers-reduced-motion:reduce){main.keenable-report [data-keenable-plaque]{transition:none}}main.keenable-report [data-keenable-plaque]:focus-visible{outline:2px solid #fffdf7;outline-offset:-4px}@media (min-width:720px){main.keenable-report [data-keenable-track]{left:auto;right:25px;bottom:28px;align-items:flex-end}main.keenable-report [data-keenable-plaque]{bottom:28px;font-size:16px;line-height:21px;text-align:left}main.keenable-report [data-keenable-plaque] [data-keenable-lede]{display:block}}
+
+main.keenable-report {
+  width: 100%;
+  flex: 1 0 auto;
+  background: #fff;
+  color: #111;
+  font-family: 'Stack Sans Headline', system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.55;
+}
+main.keenable-report a {
+  color: #1F5FBF;
+  text-decoration: none;
+}
+main.keenable-report a:hover {
+  text-decoration: underline;
+}
+/* ─── Ariadne's Thread [AT-0502] ─────────────────────
+   What: Keep aside.founder paper text and white handle on the white report page
+   Why:  main.keenable-report color #111 and link #1F5FBF would paint the author card dark on blue
+   Date: 2026-09-04
+   Related: [AT-0363] app/site.css:article.legal.card .founder, [AT-0264] app/site.css:.founder, [AT-0502] content/blog-screenshot-visual-privacy-apps.ts
+─────────────────────────────────────────────────────── */
+main.keenable-report .founder {
+  color: var(--paper);
+  margin: 0 0 28px;
+  font-family: ui-rounded, "SF Pro Rounded", "Avenir Next", sans-serif;
+}
+main.keenable-report .founder a {
+  color: #fff;
+}
+main.keenable-report .founder a:hover {
+  text-decoration: underline;
+}
+/* ─── Ariadne's Thread [AT-0504] ─────────────────────
+   What: Raise main.keenable-report .wrap padding-top to 96px
+   Why:  Founder card sat too close to .topnav; the report needs a top inset
+   Date: 2026-09-04
+   Related: [AT-0502] app/site.css:main.keenable-report .founder, [AT-0495] app/site.css:main.keenable-report .wrap
+─────────────────────────────────────────────────────── */
+main.keenable-report .wrap {
+  padding: 96px 24px 56px;
+}
+@media (max-width: 760px) {
+  main.keenable-report .wrap {
+    padding: 56px 14px 32px;
+  }
+}
+main.keenable-report [data-keenable-bar] {
+  position: relative;
+  z-index: 2;
+}
+main.keenable-report [data-keenable-footer] {
+  position: relative;
+  z-index: 1;
+  padding-bottom: 48px;
+}
+main.keenable-report [data-keenable-track] {
+  position: relative;
+  left: auto;
+  right: auto;
+  top: auto;
+  bottom: auto;
+  z-index: 1;
+  pointer-events: auto;
+  align-items: center;
+  padding: 8px 0 24px;
+}
+main.keenable-report [data-keenable-plaque] {
+  position: static;
+}
+main.keenable-report [data-keenable-ask] {
+  color: #005cff;
+}
+main.keenable-report [data-keenable-share] {
+  color: #fff;
+}
+main.keenable-report [data-keenable-share-networks] a {
+  color: #5a5a5a;
+}
+main.keenable-report [data-keenable-footer] a {
+  color: #fffdf7;
+  text-decoration: none;
+}
+main.keenable-report [data-keenable-plaque] {
+  color: #fffdf7;
+}
+main.keenable-report [data-keenable-legal] a {
+  color: #005cff;
+}
+main.keenable-report #heat:empty {
+  min-height: 0;
+}
+main.keenable-report [data-keenable-plaque]:hover,
+main.keenable-report [data-keenable-footer] a:hover,
+main.keenable-report [data-keenable-logo]:hover,
+main.keenable-report [data-keenable-share-networks] a:hover {
+  text-decoration: none;
+}

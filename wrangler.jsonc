@@ -1,0 +1,72 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "seenshot-web",
+  // ─── Ariadne's Thread [AT-0633] ─────────────────────
+  // What: Pin Cloudflare account_id for GitHub Actions wrangler deploy
+  // Why:  CI has no wrangler login. Official Workers GitHub Actions need account ID
+  // Date: 2026-09-06
+  // Related: [AT-0634] infra→.github/workflows/deploy.yml, https://developers.cloudflare.com/workers/ci-cd/external-cicd/github-actions/
+  // ─────────────────────────────────────────────────────
+  "account_id": "2a3ba77f5940f33d1c239fdff0a34f3c",
+  "main": "vinext/server/fetch-handler",
+  "compatibility_date": "2026-08-26",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": true,
+  // ─── Ariadne's Thread [AT-0416] ─────────────────────
+  // What: Keep seenshot.app custom domains, D1, R2, and screenshot rate limits on vinext
+  // Why:  Next.js must use the same Worker resources as the previous src/index.ts Worker
+  // Date: 2026-09-03
+  // Related: [AT-0001] wrangler.toml.bak, [AT-0002] lib/env.ts
+  // ─────────────────────────────────────────────────────
+  "routes": [
+    { "pattern": "seenshot.app", "custom_domain": true },
+    { "pattern": "www.seenshot.app", "custom_domain": true }
+  ],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "seenshot",
+      "database_id": "8c102f6f-47bf-40b1-97d1-17ae9aec6e6e",
+      "remote": true
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "BUCKET",
+      "bucket_name": "seenshot",
+      "remote": true
+    }
+  ],
+  "ratelimits": [
+    {
+      "name": "SCREENSHOT_RATE",
+      "namespace_id": "45301",
+      "simple": { "limit": 1500, "period": 60 }
+    },
+    {
+      "name": "SCREENSHOT_FLOOD",
+      "namespace_id": "45302",
+      "simple": { "limit": 1500, "period": 60 }
+    }
+  ],
+  "vars": {
+    "FIREBASE_PROJECT_ID": "seenshot-app",
+    "FIREBASE_API_KEY": "AIzaSyCM5aJRTX9I8DXCmtbPqZKugi-m8VfMzco",
+    "API_BASE_URL": "https://seenshot-api.codemarket.workers.dev",
+    "R2_PUBLIC_BASE_URL": "https://seenshot.app",
+    // ─── Ariadne's Thread [AT-0567] ─────────────────────
+    // What: Set ABUSE_EMAIL to qa@seenshot.app
+    // Why:  Site contact for abuse, support, and all other mail is one mailbox
+    // Date: 2026-09-05
+    // Related: [AT-0567] content/contact.ts, [AT-0563] components/SupportChat.tsx
+    // ─────────────────────────────────────────────────────
+    "ABUSE_EMAIL": "qa@seenshot.app"
+  },
+  "assets": {
+    "directory": "dist/client",
+    "not_found_handling": "none",
+    "binding": "ASSETS"
+  },
+  "cache": { "enabled": true },
+  "version_metadata": { "binding": "CF_VERSION_METADATA" }
+}

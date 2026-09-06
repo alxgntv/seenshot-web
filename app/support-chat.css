@@ -1,0 +1,76 @@
+/* ─── Ariadne's Thread [AT-0563] ─────────────────────
+   What: Style #support-chat like the PostHog Open chat round button
+   Why:  Support left PostHog Conversations; the same 50px bubble must open a native dialog
+   Date: 2026-09-05
+   Related: [AT-0563] components/SupportChat.tsx, https://developer.mozilla.org/en-US/docs/Web/HTML/Element/dialog
+─────────────────────────────────────────────────────── */
+/* ─── Ariadne's Thread [AT-0564] ─────────────────────
+   What: Paint #support-chat white with a blue bubble icon
+   Why:  The round Open chat control must be a white circle, not a blue fill
+   Date: 2026-09-05
+   Related: [AT-0563] app/support-chat.css:.support-chat, [AT-0563] components/SupportChat.tsx:#support-chat
+─────────────────────────────────────────────────────── */
+.support-chat {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 50;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 50px;
+  height: 50px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: #fff;
+  color: #1d4aff;
+  cursor: pointer;
+  filter: drop-shadow(rgba(9, 14, 21, 0.54) 0px 1px 6px) drop-shadow(rgba(9, 14, 21, 0.9) 0px 2px 32px);
+  transition: transform 0.2s ease-out;
+}
+.support-chat:hover {
+  transform: scale(1.05);
+}
+.support-chat-dialog {
+  box-sizing: border-box;
+  width: min(360px, calc(100vw - 40px));
+  margin: auto;
+  padding: 24px;
+  border: 4px solid #111;
+  border-radius: 18px;
+  background: #fff;
+  color: #14141c;
+  box-shadow: 5px 5px 0 #111;
+}
+.support-chat-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.45);
+}
+.support-chat-dialog h2 {
+  margin: 0 0 12px;
+  font-size: 22px;
+}
+.support-chat-dialog p {
+  margin: 0 0 8px;
+  font-size: 14px;
+}
+.support-chat-dialog a {
+  color: #1d4aff;
+  font-weight: 800;
+  font-size: 16px;
+}
+.support-chat-dialog form {
+  margin: 20px 0 0;
+}
+.support-chat-dialog button[type="submit"] {
+  margin: 0;
+  padding: 8px 16px;
+  border: 4px solid #111;
+  border-radius: 999px;
+  background: #fff;
+  color: #14141c;
+  font-weight: 800;
+  font-size: 14px;
+}

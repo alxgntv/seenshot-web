@@ -1,0 +1,19 @@
+---
+description: Ban em dash and semicolon in all agent-written text
+alwaysApply: true
+---
+
+# Forbidden characters
+
+Never write these two characters anywhere in text you create or edit:
+
+- em dash (Unicode 2014)
+- semicolon (Unicode 003B)
+
+This covers UI copy, SEO title and description, Open Graph, Twitter, FAQ, database string values, comments, logs, commit messages, and chat replies.
+
+Use a hyphen, comma, period, or a new sentence instead.
+
+Do not add these characters when changing existing files. If you must keep language syntax that already requires a semicolon (SQL statement end, C++), do not introduce extra ones in strings or comments.
+
+TypeScript and JavaScript you write must not use a semicolon.

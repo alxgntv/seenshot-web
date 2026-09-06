@@ -6,3 +6,11 @@ node_modules/
 *.sqlite
 *.sqlite-shm
 *.sqlite-wal
+.next/
+out/
+.open-next/
+*.tsbuildinfo
+next-env.d.ts
+.vinext/
+/dist/
+wrangler.toml.bak

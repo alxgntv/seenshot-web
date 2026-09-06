@@ -1,7 +1,15 @@
 User-agent: *
 Allow: /
+Disallow: /signin
+Disallow: /signup
+Disallow: /oauth/
 Disallow: /cabinet
 Disallow: /space
-Disallow: /signin
+Disallow: /screenshot/
+Disallow: /s/
 Disallow: /shot/
+Disallow: /public/
+Disallow: /upload-progress/
 Disallow: /api/
+
+Sitemap: https://seenshot.app/sitemap.xml
