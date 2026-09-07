@@ -125,7 +125,14 @@ export function startOauthAuthorize() {
             " challengeChars=" + body.code_challenge.length
         );
         const token = await SeenShotAuth.ensureIdToken();
-        const response = await fetch("/oauth/authorize", {
+        // ─── Ariadne's Thread [AT-0639] ─────────────────────
+        // What: POST consent to /oauth/authorize/ so vinext trailingSlash does not 308
+        // Why:  POST /oauth/authorize was 308d onto the slash URL, then the page answered 405
+        // Date: 2026-09-07
+        // Related: [AT-0638] middleware.ts:oauthAuthorizeResponse, [AT-0043] lib/client/oauth-authorize.ts
+        // ─────────────────────────────────────────────────────
+        console.log("SeenShot oauth: POST /oauth/authorize/ bearerChars=" + token.length)
+        const response = await fetch("/oauth/authorize/", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

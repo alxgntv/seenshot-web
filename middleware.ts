@@ -32,6 +32,39 @@ function pathnameHeaders(request: NextRequest) {
   return requestHeaders
 }
 
+// ─── Ariadne's Thread [AT-0638] ─────────────────────
+// What: Handle POST /oauth/authorize and /oauth/authorize/ before slash rewrite
+// Why:  vinext 308s POST onto the slash URL, then the page rewrite answered 405 GET,HEAD
+// Date: 2026-09-07
+// Related: [AT-0421] middleware.ts, [AT-0040] lib/oauth.ts:handleAuthorizePost, [AT-0615] next.config.ts:trailingSlash
+// ─────────────────────────────────────────────────────
+async function oauthAuthorizeResponse(request: NextRequest, pathname: string) {
+  const method = request.method
+  console.log(
+    "index: oauth authorize method=" + method +
+      " path=" + pathname +
+      " host=" + request.nextUrl.hostname
+  )
+  if (method === "POST") {
+    try {
+      const response = await handleAuthorizePost(request, getEnv())
+      console.log("index: oauth authorize POST status=" + response.status)
+      return response
+    } catch (error) {
+      console.error("index: oauth authorize POST failed", error)
+      return handleRouteError(error)
+    }
+  }
+  if (method === "GET") {
+    const invalid = authorizeGetInvalidResponse(request)
+    if (invalid) {
+      console.warn("index: oauth authorize GET invalid status=" + invalid.status)
+      return invalid
+    }
+  }
+  return null
+}
+
 export async function middleware(request: NextRequest) {
   const url = request.nextUrl
   const pathname = url.pathname
@@ -57,6 +90,12 @@ export async function middleware(request: NextRequest) {
     }
     return response
   }
+  if (normalized === "/oauth/authorize") {
+    const oauthResponse = await oauthAuthorizeResponse(request, pathname)
+    if (oauthResponse) {
+      return oauthResponse
+    }
+  }
   // ─── Ariadne's Thread [AT-0428] ─────────────────────
   // What: Rewrite /space/ and other HTML trailing slashes without a 308
   // Why:  Worker URLs used /space/; vinext still 308s despite skipTrailingSlashRedirect
@@ -68,22 +107,6 @@ export async function middleware(request: NextRequest) {
     dest.pathname = normalized
     console.log("index: trailing slash rewrite path=" + pathname + " dest=" + dest.pathname)
     return NextResponse.rewrite(dest, { request: { headers: requestHeaders } })
-  }
-  if (pathname === "/oauth/authorize") {
-    if (request.method === "POST") {
-      console.log(`index: POST ${url.hostname} ${pathname}`)
-      try {
-        return await handleAuthorizePost(request, getEnv())
-      } catch (error) {
-        return handleRouteError(error)
-      }
-    }
-    if (request.method === "GET") {
-      const invalid = authorizeGetInvalidResponse(request)
-      if (invalid) {
-        return invalid
-      }
-    }
   }
   if (pathname.startsWith("/screenshot/")) {
     const limited = await allowScreenshotTraffic(request, getEnv())
@@ -101,6 +124,7 @@ export const config = {
     "/robots.txt",
     "/sitemap.xml",
     "/oauth/authorize",
+    "/oauth/authorize/",
     "/screenshot/:path*",
     "/space",
     "/space/:path*",

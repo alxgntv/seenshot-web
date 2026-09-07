@@ -308,8 +308,15 @@ export function startSignin() {
       // ─────────────────────────────────────────────────────
       const pathOnly = path.split("?")[0];
       const redemOk = pathOnly === "/space/redem" || pathOnly === "/space/redem/";
-      if (path === "/oauth/authorize" || path.indexOf("/oauth/authorize?") === 0) {
-        console.log("SeenShot signin: next oauth authorize chars=" + path.length);
+      // ─── Ariadne's Thread [AT-0640] ─────────────────────
+      // What: Honor next=/oauth/authorize/ after sign-in as well as the no-slash URL
+      // Why:  trailingSlash: true lands Mac PKCE on the slash consent URL
+      // Date: 2026-09-07
+      // Related: [AT-0044] lib/client/signin.ts:afterSignInPath, [AT-0638] middleware.ts:oauthAuthorizeResponse
+      // ─────────────────────────────────────────────────────
+      const authorizeOk = pathOnly === "/oauth/authorize" || pathOnly === "/oauth/authorize/"
+      if (authorizeOk) {
+        console.log("SeenShot signin: next oauth authorize path=" + pathOnly + " chars=" + path.length)
         return path;
       }
       if (pathOnly === "/space" || pathOnly === "/space/" || redemOk) {
