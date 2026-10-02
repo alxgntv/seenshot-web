@@ -280,7 +280,7 @@ export function startReleases() {
       const founderName = founder.querySelector(".founder-name");
       const founderHandle = founder.querySelector(".founder-handle");
       const founderPhoto = founder.querySelector("img");
-      const founderBody = founder.querySelector(".founder-copy p:last-child");
+      const founderBody = founder.querySelector(".founder-copy > p:not(.founder-head)")
       const founderBodyText = founderBody ? founderBody.textContent : "";
       // ─── Ariadne's Thread [AT-0491] ─────────────────────
       // What: Log founder body sensitive-data sentence
@@ -299,6 +299,9 @@ export function startReleases() {
           " body=" + founderBodyText +
           " chars=" + (founderBody ? founderBodyText.length : 0) +
           " hasAiAgents=" + (founderBody ? String(founderBodyText.indexOf("AI agents") !== -1) : "false") +
+          " hasAiAgentsLabel=" + (founderBody ? String(founderBodyText.indexOf("Ai Agents") !== -1) : "false") +
+          " hasSpeedUp=" + (founderBody ? String(founderBodyText.indexOf("speed up") !== -1) : "false") +
+          " hasThisIsAlex=" + (founderBody ? String(founderBodyText.indexOf("this is Alex") !== -1) : "false") +
           " hasIndiehacker=" + (founderBody ? String(founderBodyText.indexOf("indiehacker") !== -1) : "false") +
           " hasSensitiveData=" + (founderBody ? String(founderBodyText.indexOf("sensitive data") !== -1) : "false") +
           " hasPhones=" + (founderBody ? String(founderBodyText.indexOf("phones") !== -1) : "false") +
@@ -347,16 +350,27 @@ export function startReleases() {
           );
         }
       }
+      // ─── Ariadne's Thread [AT-0738] ─────────────────────
+      // What: Drop the faces requirement on landing founder body
+      // Why:  The new intro keeps phones, emails, passwords, API keys and does not mention faces
+      // Date: 2026-10-02
+      // Related: [AT-0738] components/LandingMain.tsx:.founder-copy, [AT-0491] lib/client/releases.ts:.founder-copy
+      // ─────────────────────────────────────────────────────
       if (
         !founderBody ||
+        founderBodyText.indexOf("this is Alex") === -1 ||
+        founderBodyText.indexOf("Ai Agents") === -1 ||
         founderBodyText.indexOf("sensitive data") === -1 ||
         founderBodyText.indexOf("phones") === -1 ||
         founderBodyText.indexOf("emails") === -1 ||
         founderBodyText.indexOf("passwords") === -1 ||
-        founderBodyText.indexOf("API keys") === -1 ||
-        founderBodyText.indexOf("faces") === -1
+        founderBodyText.indexOf("API keys") === -1
       ) {
-        console.error("SeenShot site: founder body missing sensitive data sentence");
+        console.error(
+          "SeenShot site: founder body missing intro sentence body=" +
+            founderBodyText +
+            " hasBody=" + Boolean(founderBody)
+        )
       }
       if (founderPhoto) {
         founderPhoto.addEventListener("load", function () {

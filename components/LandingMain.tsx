@@ -59,7 +59,8 @@ export function LandingMain({
       " compare=" + String(compare) +
       " jsonLd=" + String(jsonLd) +
       " founderAgents=" + String(founderAgents) +
-      " imageTitle=" + (imageMeta ? imageMeta.title : "")
+      " imageTitle=" + (imageMeta ? imageMeta.title : "") +
+      " founderBody=Hey this is Alex, and this is SeenShot"
   )
   return (
     <>
@@ -204,7 +205,13 @@ export function LandingMain({
           Date: 2026-10-02
           Related: [AT-0491] components/LandingMain.tsx:.founder-copy, [AT-0568] content/site-jsonld.ts:PERSON_DESCRIPTION
         ─────────────────────────────────────────────────────── */}
-        <p>Hey this Alex, and this is SeenShot. This app helps send annotated screenshots to your agents in one click. Also it help protect sensitive data at your screenshots phones, emails, passwords, API keys.</p>
+        {/* ─── Ariadne's Thread [AT-0738] ─────────────────────
+          What: Set founder body to Hey this is Alex, and this is SeenShot
+          Why:  Intro must say the app speeds up and protects the AI Agents workflow, then one-click shots and sensitive data
+          Date: 2026-10-02
+          Related: [AT-0718] components/LandingMain.tsx:.founder-copy, [AT-0738] content/site-jsonld.ts:PERSON_DESCRIPTION
+        ─────────────────────────────────────────────────────── */}
+        <p>Hey this is Alex, and this is SeenShot. This app speed up and protect your workflow with Ai Agents. It helps send annotated screenshots to your agents in one click. Also it help protect sensitive data at your screenshots phones, emails, passwords, API keys.</p>
         {founderAgents ? (
           <>
             {/* ─── Ariadne's Thread [AT-0731] ─────────────────────

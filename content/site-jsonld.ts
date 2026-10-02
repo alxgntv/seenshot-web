@@ -12,8 +12,14 @@ export const PERSON_NAME = "Alex Ign";
 export const PERSON_HANDLE = "@aleksey_ignatov";
 export const PERSON_URL = "https://www.linkedin.com/in/ignalex/";
 export const PERSON_IMAGE = SITE_ORIGIN + "/alex-ign.png";
+// ─── Ariadne's Thread [AT-0738] ─────────────────────
+// What: Set PERSON_DESCRIPTION to Hey this is Alex, and this is SeenShot
+// Why:  Person JSON-LD must match the landing founder body, including Ai Agents workflow
+// Date: 2026-10-02
+// Related: [AT-0738] components/LandingMain.tsx:.founder-copy, [AT-0568] content/site-jsonld.ts:PERSON_DESCRIPTION
+// ─────────────────────────────────────────────────────
 export const PERSON_DESCRIPTION =
-  "Hey this Alex, and this is SeenShot. This app helps send annotated screenshots to your agents in one click. Also it help protect sensitive data at your screenshots phones, emails, passwords, API keys."
+  "Hey this is Alex, and this is SeenShot. This app speed up and protect your workflow with Ai Agents. It helps send annotated screenshots to your agents in one click. Also it help protect sensitive data at your screenshots phones, emails, passwords, API keys."
 export const ORGANIZATION_NAME = "Codemarket OÜ";
 export const APP_NAME = "SeenShot";
 export const APP_DESCRIPTION =
