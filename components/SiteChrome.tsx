@@ -11,10 +11,12 @@ export function TopNav({
   landing = false,
   oauth = false,
   signOut = false,
+  cabinet = false,
 }: {
-  landing?: boolean;
-  oauth?: boolean;
-  signOut?: boolean;
+  landing?: boolean
+  oauth?: boolean
+  signOut?: boolean
+  cabinet?: boolean
 }) {
   // ─── Ariadne's Thread [AT-0438] ─────────────────────
   // What: Wrap landing and cabinet Sign In / email / Sign Out in details.topnav-menu
@@ -38,6 +40,7 @@ export function TopNav({
     "SeenShot site: TopNav pricingHref=/#pricing landing=" + Boolean(landing) +
       " oauth=" + Boolean(oauth) +
       " signOut=" + Boolean(signOut) +
+      " cabinet=" + Boolean(cabinet) +
       " accountMenu=" + String(Boolean(signOut) && !oauth)
   )
   const authNav = (
@@ -67,22 +70,22 @@ export function TopNav({
           Related: [AT-0459] components/LandingMain.tsx:.hero-shot, https://developer.mozilla.org/en-US/docs/Web/HTML/Element/img#loading
         ─────────────────────────────────────────────────────── */}
         <img src="/SeenShot.png" alt="" width={36} height={36} loading="lazy" decoding="async" />
-        {landing ? (
+        {/* ─── Ariadne's Thread [AT-0713] ─────────────────────
+          What: Put the cabinet cmd+shift+2 lede under .brand-name
+          Why:  /space must not keep that sentence in #empty .hero. It belongs under SeenShot.app
+          Date: 2026-10-02
+          Related: [AT-0403] components/LandingMain.tsx:.lede, [AT-0236] app/site.css:.brand-copy, [AT-0712] app/site.css:#empty-wrap
+        ─────────────────────────────────────────────────────── */}
+        {landing || cabinet ? (
           <span className="brand-copy">
             <span className="brand-name">SeenShot.app</span>
-            {/* ─── Ariadne's Thread [AT-0442] ─────────────────────
-              What: Set landing .brand .lede to Fast annotation for Ai Agents
-              Why:  Header tagline must name the AI-agent annotation loop, not MacOS marketing
-              Date: 2026-09-03
-              Related: [AT-0438] components/SiteChrome.tsx:TopNav, [AT-0403] components/LandingMain.tsx:.lede
-            ─────────────────────────────────────────────────────── */}
-            {/* ─── Ariadne's Thread [AT-0471] ─────────────────────
-              What: Set the landing brand lede to Fast, Secure annotation App for Ai Agents
-              Why:  The top navigation must use the supplied secure-app tagline
-              Date: 2026-09-03
-              Related: [AT-0442] components/SiteChrome.tsx:.brand .lede
-            ─────────────────────────────────────────────────────── */}
-            <span className="lede">Fast, Secure annotation App for Ai Agents</span>
+            {landing ? (
+              <span className="lede">Fast, Secure annotation App for Ai Agents</span>
+            ) : (
+              <span className="lede">
+                <span className="lede-copy">Hit <b>cmd+shift+2</b>, annotate, insert in to your agent.</span>
+              </span>
+            )}
           </span>
         ) : (
           <span className="brand-name">SeenShot.app</span>
@@ -239,18 +242,20 @@ export function SitePage({
   oauth = false,
   signOut = false,
   version = false,
+  cabinet = false,
 }: {
-  children: React.ReactNode;
-  landing?: boolean;
-  oauth?: boolean;
-  signOut?: boolean;
-  version?: boolean;
+  children: React.ReactNode
+  landing?: boolean
+  oauth?: boolean
+  signOut?: boolean
+  version?: boolean
+  cabinet?: boolean
 }) {
   return (
     <>
-      <TopNav landing={landing} oauth={oauth} signOut={signOut} />
+      <TopNav landing={landing} oauth={oauth} signOut={signOut} cabinet={cabinet} />
       {children}
       <SiteFooter version={version} />
     </>
-  );
+  )
 }

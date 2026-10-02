@@ -1,10 +1,10 @@
 // @ts-nocheck
 
-// ─── Ariadne's Thread [AT-0687] ─────────────────────
-// What: Show cabinet Download only after a paid plan, and keep Pay plus AppSumo for free accounts
-// Why:  App DMG is no longer free after sign-up. Member comes from card checkout or an AppSumo code
+// ─── Ariadne's Thread [AT-0709] ─────────────────────
+// What: Keep cabinet Download visible for free and paid, and send free clicks to Member Stripe
+// Why:  Empty /space hid the DMG pill. Logged-in free accounts must still see Download next to AppSumo
 // Date: 2026-10-02
-// Related: [AT-0688] lib/site.ts:serveLatestMacDmg, [AT-0283] lib/client/nav.ts:paint, [AT-0689] components/SpaceMain.tsx
+// Related: [AT-0687] lib/client/paid-ui.ts:paintPaidCabinet, [AT-0710] lib/client/cabinet.ts:startCheckout, [AT-0707] components/SpaceMain.tsx:.cabinet-head
 // ─────────────────────────────────────────────────────
 
 let cachedPlan = "free"
@@ -30,26 +30,36 @@ export function paintPaidCabinet(plan, graceEndsAt) {
   const emptyWrap = document.getElementById("empty-wrap")
   const emptyVisible = Boolean(emptyWrap && !emptyWrap.hidden)
   const cabinetDownload = document.getElementById("cabinet-download")
+  const cabinetWrap = cabinetDownload && cabinetDownload.closest ? cabinetDownload.closest(".download-wrap") : null
   const latestDownload = document.getElementById("latest-download")
   const latestWrap = latestDownload && latestDownload.closest ? latestDownload.closest(".download-wrap") : null
   const upgrade = document.getElementById("upgrade-pro")
   const appsumo = document.getElementById("buy-appsumo")
   const redeemLink = document.getElementById("redeem-promocode")
+  const heroCta = emptyWrap ? emptyWrap.querySelector(".hero-cta") : null
   const path = location.pathname.replace(/\/+$/, "") || "/"
   const onSpace = path === "/space" || path === "/space/redem"
   const showBuy = planKnown && !paid
-  const showDownload = planKnown && paid
+  const showDownload = planKnown
   if (cabinetDownload) {
-    cabinetDownload.hidden = !showDownload || emptyVisible
+    cabinetDownload.hidden = !showDownload
+    if (showBuy) {
+      cabinetDownload.setAttribute("data-checkout", "member")
+    } else {
+      cabinetDownload.removeAttribute("data-checkout")
+    }
+  }
+  if (cabinetWrap) {
+    cabinetWrap.hidden = !showDownload
   }
   if (onSpace && latestDownload) {
-    latestDownload.hidden = !showDownload
+    latestDownload.hidden = true
   }
   if (onSpace && latestWrap) {
-    latestWrap.hidden = !showDownload
+    latestWrap.hidden = true
   }
   if (upgrade) {
-    upgrade.hidden = !showBuy
+    upgrade.hidden = true
   }
   if (appsumo) {
     appsumo.hidden = !showBuy
@@ -63,12 +73,15 @@ export function paintPaidCabinet(plan, graceEndsAt) {
       " paid=" + paid +
       " showBuy=" + showBuy +
       " showDownload=" + showDownload +
+      " checkout=" + (cabinetDownload ? (cabinetDownload.getAttribute("data-checkout") || "") : "missing") +
       " emptyVisible=" + emptyVisible +
       " onSpace=" + onSpace +
       " cabinetHidden=" + (cabinetDownload ? String(cabinetDownload.hidden) : "missing") +
+      " cabinetWrapHidden=" + (cabinetWrap ? String(cabinetWrap.hidden) : "missing") +
       " latestHidden=" + (latestDownload ? String(latestDownload.hidden) : "missing") +
       " upgradeHidden=" + (upgrade ? String(upgrade.hidden) : "missing") +
       " appsumoHidden=" + (appsumo ? String(appsumo.hidden) : "missing") +
-      " redeemHidden=" + (redeemLink ? String(redeemLink.hidden) : "missing")
+      " redeemHidden=" + (redeemLink ? String(redeemLink.hidden) : "missing") +
+      " heroCtaDisplay=" + (heroCta ? getComputedStyle(heroCta).display : "missing")
   )
 }

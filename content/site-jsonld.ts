@@ -13,7 +13,7 @@ export const PERSON_HANDLE = "@aleksey_ignatov";
 export const PERSON_URL = "https://www.linkedin.com/in/ignalex/";
 export const PERSON_IMAGE = SITE_ORIGIN + "/alex-ign.png";
 export const PERSON_DESCRIPTION =
-  "Hey, this Alex im serial solofounder. I built this app because im sending feedback to my AI agents many times a day, and I've found they make much better edits when I provide comments and annotations on the screenshot. This app also helps me protect sensitive data phones, emails, passwords, API keys, and even faces from being sent to AI agents.";
+  "Hey this Alex, and this is SeenShot. This app helps send annotated screenshots to your agents in one click. Also it help protect sensitive data at your screenshots phones, emails, passwords, API keys."
 export const ORGANIZATION_NAME = "Codemarket OÜ";
 export const APP_NAME = "SeenShot";
 export const APP_DESCRIPTION =

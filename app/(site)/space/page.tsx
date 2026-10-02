@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 
 export default function SpacePage() {
   return (
-    <SitePage signOut>
+    <SitePage signOut cabinet>
       <SpaceMain />
     </SitePage>
   );

@@ -530,43 +530,60 @@ export function startNav() {
           " navAuthDisplay=" + getComputedStyle(link).display +
           " accountHidden=" + (document.getElementById("nav-account") ? String(document.getElementById("nav-account").hidden) : "missing")
       );
-      const quota = quotaNode();
-      if (!quota) {
-        console.log("SeenShot nav: skip me, no quota node");
-        return;
-      }
+      // ─── Ariadne's Thread [AT-0708] ─────────────────────
+      // What: Still GET /api/me when #nav-quota is missing from /space
+      // Why:  Cabinet Download and AppSumo need plan= from me after the title row was removed
+      // Date: 2026-10-02
+      // Related: [AT-0707] components/SpaceMain.tsx:.cabinet-head, [AT-0709] lib/client/paid-ui.ts:paintPaidCabinet, [AT-0072] lib/client/nav.ts:paint
+      // ─────────────────────────────────────────────────────
+      const quota = quotaNode()
       try {
-        const response = await SeenShotAuth.api("/api/me");
+        const response = await SeenShotAuth.api("/api/me")
         if (seq !== paintSeq) {
-          console.log("SeenShot nav: paint stale after me seq=" + seq + " latest=" + paintSeq);
-          return;
+          console.log("SeenShot nav: paint stale after me seq=" + seq + " latest=" + paintSeq)
+          return
         }
         if (!response.ok) {
-          console.warn("SeenShot nav: me status=" + response.status);
-          hideQuota();
+          console.warn("SeenShot nav: me status=" + response.status)
+          hideQuota()
           paintPaidCabinet("free", null)
-          hideUpgrade();
-          hideRedeem();
-          return;
+          hideUpgrade()
+          hideRedeem()
+          return
         }
-        const data = await response.json();
-        const remaining = typeof data.remainingBytes === "number" ? data.remainingBytes : 0;
-        const limit = typeof data.limitBytes === "number" ? data.limitBytes : 10 * 1024 * 1024;
-        const used = typeof data.usedBytes === "number" ? data.usedBytes : 0;
-        const plan = typeof data.plan === "string" ? data.plan : "free";
+        const data = await response.json()
+        const remaining = typeof data.remainingBytes === "number" ? data.remainingBytes : 0
+        const limit = typeof data.limitBytes === "number" ? data.limitBytes : 10 * 1024 * 1024
+        const used = typeof data.usedBytes === "number" ? data.usedBytes : 0
+        const plan = typeof data.plan === "string" ? data.plan : "free"
         const graceEndsAt = data.graceEndsAt
         paintPaidCabinet(plan, graceEndsAt)
-        const text = planLabel(plan) + ": " + formatMb(limit) + ", available " + formatMb(remaining);
-        quota.hidden = false;
-        quota.textContent = text;
-        quota.title = formatMb(used) + " used of " + formatMb(limit) + " (" + plan + ")";
+        // ─── Ariadne's Thread [AT-0730] ─────────────────────
+        // What: Hide #nav-quota when the plan label is Free
+        // Why:  Cabinet title must not print Free. Member still shows
+        // Date: 2026-10-02
+        // Related: [AT-0725] lib/client/nav.ts:paint, [AT-0078] components/SpaceMain.tsx:#nav-quota
+        // ─────────────────────────────────────────────────────
+        const text = planLabel(plan)
+        if (quota) {
+          if (text === "Free") {
+            hideQuota()
+            console.log("SeenShot nav: quota skip Free remaining=" + remaining + " used=" + used + " limit=" + limit)
+          } else {
+            quota.hidden = false
+            quota.textContent = text
+            quota.title = formatMb(used) + " used of " + formatMb(limit) + " (" + plan + ")"
+          }
+        }
         console.log(
           "SeenShot nav: quota remaining=" + remaining +
             " used=" + used +
             " limit=" + limit +
             " plan=" + plan +
-            " text=" + text
-        );
+            " text=" + text +
+            " quotaNode=" + Boolean(quota) +
+            " quotaHidden=" + (quota ? String(quota.hidden) : "missing")
+        )
         // ─── Ariadne's Thread [AT-0283] ─────────────────────
         // What: Show Upgrade to Pro when plan is not pro
         // Why:  Member accounts must not start a second Polar checkout from the cabinet
@@ -591,8 +608,9 @@ export function startNav() {
             "SeenShot nav: appsumo hidden=" + appsumo.hidden +
               " href=" + (appsumo.getAttribute("href") || "") +
               " plan=" + plan +
-              " paid=" + paid
-          );
+              " paid=" + paid +
+              " label=" + (appsumo.textContent || "").trim()
+          )
         }
         if (redeemLink) {
           console.log(

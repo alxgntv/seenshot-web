@@ -67,7 +67,12 @@ function isPublicAppDownloadLink(node) {
     console.log("SeenShot signup-modal: skip share PNG download")
     return null
   }
-  if (link.id === "upgrade-pro" || link.id === "redeem-promocode" || link.id === "buy-appsumo") {
+  if (
+    link.id === "upgrade-pro" ||
+    link.id === "redeem-promocode" ||
+    link.id === "buy-appsumo" ||
+    link.id === "cabinet-download"
+  ) {
     // ─── Ariadne's Thread [AT-0692] ─────────────────────
     // What: Do not intercept Pay with card, Redeem, or Buy on AppSumo as app downloads
     // Why:  Those cabinet links buy or grant Member. They must not open Create account

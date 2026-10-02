@@ -70,26 +70,33 @@ export function DownloadWrap({
   href,
   label,
   arch = "Apple Silicon (arm64)",
+  hidden = false,
 }: {
   id: string
   href?: string
   label?: string
   arch?: string
+  hidden?: boolean
 }) {
-  const archLocked = arch !== "Apple Silicon (arm64)"
+  const showArch = Boolean(arch)
+  const archLocked = showArch && arch !== "Apple Silicon (arm64)"
   console.log(
     "SeenShot site: DownloadWrap id=" + id +
       " href=" + (href || "") +
       " label=" + (label || "") +
       " arch=" + arch +
-      " archLocked=" + archLocked
+      " showArch=" + String(showArch) +
+      " archLocked=" + archLocked +
+      " hidden=" + String(hidden)
   )
   return (
-    <div className="download-wrap">
-      <DownloadPill id={id} href={href} label={label} />
-      <p className="download-arch" data-arch={archLocked ? arch : undefined}>
-        {arch}
-      </p>
+    <div className="download-wrap" hidden={hidden}>
+      <DownloadPill id={id} href={href} label={label} hidden={hidden} />
+      {showArch ? (
+        <p className="download-arch" data-arch={archLocked ? arch : undefined}>
+          {arch}
+        </p>
+      ) : null}
     </div>
   )
 }

@@ -17,14 +17,12 @@ export type LandingFaqItem = {
 };
 
 export const landingFaqItems: LandingFaqItem[] = [
-  {
-    id: "faq-free",
-    question: "Is it free?",
-    paragraphs: [
-      "Yes. For personal use SeenShot is free. You can take as many screenshots as you want and add as many annotations as you want. There are no limits on captures or annotations. Free screenshots keep a watermark.",
-      "To remove the watermark, Member is $29 / year. Member also adds 1 GB screenshot storage so you can keep shots and come back to them.",
-    ],
-  },
+  // ─── Ariadne's Thread [AT-0720] ─────────────────────
+  // What: Drop the Is it free FAQ item
+  // Why:  SeenShot has no Free plan. FAQ must not say personal use is free
+  // Date: 2026-10-02
+  // Related: [AT-0565] content/landing-faq.ts:landingFaqItems, [AT-0566] content/landing-faq.ts:landingFaqJsonLd
+  // ─────────────────────────────────────────────────────
   {
     id: "faq-platforms",
     question: "What platforms does it run on?",
@@ -88,7 +86,7 @@ export const landingFaqItems: LandingFaqItem[] = [
       "No. Blur and recognition run on your computer. You can turn the internet off and it still works. SeenShot is a fully offline, standalone app for capture, blur, and annotation. Internet is only needed when you upload a screenshot to share a link.",
     ],
   },
-];
+]
 
 // ─── Ariadne's Thread [AT-0566] ─────────────────────
 // What: Build schema.org FAQPage JSON-LD from the landing FAQ items

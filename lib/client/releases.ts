@@ -74,6 +74,26 @@ export function startReleases() {
       }
     }
     console.log("SeenShot site: brand lede=" + (brandLede ? brandLede.textContent : "") + " chars=" + (brandLede ? brandLede.textContent.length : 0));
+    const brandAgents = document.querySelector(".brand .lede-agents");
+    const brandAgentMarks = brandAgents ? brandAgents.querySelectorAll(".lede-agent") : [];
+    const brandLedeCopy = document.querySelector(".brand .lede-copy");
+    const brandLucide = document.querySelector(".brand .lede-agents .lede-lucide")
+    console.log(
+      "SeenShot site: brand lede-agents=" + Boolean(brandAgents) +
+        " marks=" + brandAgentMarks.length +
+        " label=" + (brandAgents ? (brandAgents.getAttribute("aria-label") || "") : "") +
+        " lucide=" + Boolean(brandLucide) +
+        " lucideFirst=" + Boolean(brandAgents && brandLucide && brandAgents.firstElementChild === brandLucide) +
+        " afterCopy=" + Boolean(brandLedeCopy && brandAgents && brandLedeCopy.nextElementSibling === brandAgents)
+    )
+    const founderAgents = document.querySelector(".founder-copy .lede-agents")
+    const founderAgentMarks = founderAgents ? founderAgents.querySelectorAll(".lede-agent") : []
+    const founderBody = document.querySelector(".founder-copy > p:not(.founder-head)")
+    console.log(
+      "SeenShot site: founder lede-agents=" + Boolean(founderAgents) +
+        " marks=" + founderAgentMarks.length +
+        " afterBody=" + Boolean(founderBody && founderAgents && founderBody.nextElementSibling === founderAgents)
+    )
     // ─── Ariadne's Thread [AT-0305] ─────────────────────
     // What: Log .brand img src after the logo returned to the topnav
     // Why:  Landing header must leave an English trail that /SeenShot.png sits left of .brand-copy
@@ -91,10 +111,13 @@ export function startReleases() {
     const ledeAgents = document.querySelector(".hero .lede-agents");
     const ledeAgentMarks = ledeAgents ? ledeAgents.querySelectorAll(".lede-agent") : [];
     const ledeCopy = document.querySelector(".hero .lede-copy");
+    const ledeLucide = ledeAgents ? ledeAgents.querySelector(".lede-lucide") : null
     console.log(
       "SeenShot site: lede-agents=" + Boolean(ledeAgents) +
         " marks=" + ledeAgentMarks.length +
         " label=" + (ledeAgents ? (ledeAgents.getAttribute("aria-label") || "") : "") +
+        " lucide=" + Boolean(ledeLucide) +
+        " lucideFirst=" + Boolean(ledeAgents && ledeLucide && ledeAgents.firstElementChild === ledeLucide) +
         " afterCopy=" + Boolean(ledeCopy && ledeAgents && ledeCopy.nextElementSibling === ledeAgents)
     );
     // ─── Ariadne's Thread [AT-0451] ─────────────────────
@@ -1729,7 +1752,6 @@ export function startReleases() {
     );
     const onLandingHome = Boolean(document.querySelector("main.landing .hero"));
     const expectedFaq = [
-      "Is it free?",
       "What platforms does it run on?",
       "Can I download the app without the App Store?",
       "What do I need to start taking screenshots?",
@@ -1738,7 +1760,7 @@ export function startReleases() {
       "Does it blur sensitive data?",
       "Is there a corporate licence?",
       "Do I need API keys or a cloud to blur data?"
-    ];
+    ]
     const faqCs = faqItems[0] ? getComputedStyle(faqItems[0]) : null;
     console.log(
       "SeenShot site: faq section=" + Boolean(faqSection) +
@@ -1792,8 +1814,8 @@ export function startReleases() {
         " contactHref=" + faqContactHref +
         " validContact=" + String(validFaqContact)
     );
-    if (onLandingHome && faqItems.length !== 9) {
-      console.error("SeenShot site: FAQ count expected 9 got=" + faqItems.length);
+    if (onLandingHome && faqItems.length !== 8) {
+      console.error("SeenShot site: FAQ count expected 8 got=" + faqItems.length)
     }
     if (onLandingHome && !faqAfterPricing) {
       console.error("SeenShot site: FAQ is not immediately after Pricing");
@@ -2256,21 +2278,10 @@ export function startReleases() {
         link.setAttribute("href", href)
         const apple = link.querySelector(".download-apple")
         const label = link.querySelector(".download-label")
-        // ─── Ariadne's Thread [AT-0702] ─────────────────────
-        // What: Paint #cabinet-download as Download. ARM or Download. x86
-        // Why:  Signed-in cabinet CTA must name the matching Mac chip after the period
-        // Date: 2026-10-02
-        // Related: [AT-0685] components/SpaceMain.tsx:#cabinet-download, [AT-0516] lib/client/releases.ts:detectMacArch
-        // ─────────────────────────────────────────────────────
-        if (link.id === "cabinet-download" && label) {
-          const chip = href.indexOf("x86") !== -1 ? "x86" : "ARM"
-          const chipLabel = "Download. " + chip
-          label.textContent = chipLabel
-          link.setAttribute("data-label", chipLabel)
+        if (link.id === "cabinet-download") {
           console.log(
-            "SeenShot site: cabinet-download chip=" + chip +
-              " href=" + href +
-              " label=" + chipLabel +
+            "SeenShot site: cabinet-download href=" + href +
+              " label=" + (label ? (label.textContent || "").trim() : "") +
               " hidden=" + String(link.hidden)
           )
         }

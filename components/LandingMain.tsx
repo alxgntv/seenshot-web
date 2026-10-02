@@ -43,12 +43,14 @@ export function LandingMain({
   as = "main",
   rootId,
   imageMeta,
+  founderAgents = false,
 }: {
   compare?: boolean
   jsonLd?: boolean
   as?: "main" | "div"
   rootId?: string
   imageMeta?: LandingImageMeta
+  founderAgents?: boolean
 } = {}) {
   const Root = as
   console.log(
@@ -56,6 +58,7 @@ export function LandingMain({
       " rootId=" + (rootId || "") +
       " compare=" + String(compare) +
       " jsonLd=" + String(jsonLd) +
+      " founderAgents=" + String(founderAgents) +
       " imageTitle=" + (imageMeta ? imageMeta.title : "")
   )
   return (
@@ -133,32 +136,12 @@ export function LandingMain({
       ─────────────────────────────────────────────────────── */}
       <p id="latest-meta" className="meta" hidden={true}></p>
     </section>
-    {/* ─── Ariadne's Thread [AT-0459] ─────────────────────
-      What: Preload none on .hero-shot sharing-demo-3.mp4
-      Why:  Native video lazy: do not download the 3 MB file until autoplay in view
-      Date: 2026-09-03
-      Related: [AT-0458] components/LandingMain.tsx:.hero-shot, https://developer.mozilla.org/en-US/docs/Web/HTML/Element/video#preload
+    {/* ─── Ariadne's Thread [AT-0711] ─────────────────────
+      What: Place aside.founder above .hero-shot
+      Why:  Empty cabinet and homepage must show Alex Ign under the hero, not under the demo video
+      Date: 2026-10-02
+      Related: [AT-0263] components/LandingMain.tsx:.founder, [AT-0459] components/LandingMain.tsx:.hero-shot, [AT-0703] components/SpaceMain.tsx:#empty-wrap
     ─────────────────────────────────────────────────────── */}
-    <video
-      className="hero-shot"
-      autoPlay
-      muted
-      loop
-      playsInline
-      preload="none"
-      poster="/hero.jpg"
-      width={1264}
-      height={720}
-      aria-label={imageMeta ? imageMeta.title : "SeenShot"}
-    >
-      {/* ─── Ariadne's Thread [AT-0462] ─────────────────────
-        What: Replace the landing hero source with sharing-demo-3.mp4
-        Why:  Production must show the newly supplied sharing demo
-        Date: 2026-09-03
-        Related: [AT-0459] components/LandingMain.tsx:.hero-shot, lib/client/releases.ts:.hero-shot
-      ─────────────────────────────────────────────────────── */}
-      <source src="/sharing-demo-3.mp4" type="video/mp4" />
-    </video>
     {/* ─── Ariadne's Thread [AT-0263] ─────────────────────
       What: Founder card under hero-shot with Alex Ign avatar, handle, digest copy
       Why:  Landing must show the same intro block as the provided card, in site chrome
@@ -215,15 +198,52 @@ export function LandingMain({
           Date: 2026-09-04
           Related: [AT-0479] components/LandingMain.tsx:.founder-copy, [AT-0413] components/LandingMain.tsx:.founder-copy
         ─────────────────────────────────────────────────────── */}
-        {/* ─── Ariadne's Thread [AT-0491] ─────────────────────
-          What: Add founder body sentence on protecting phones, emails, passwords, API keys, and faces
-          Why:  Landing intro must also say the app keeps sensitive data off AI agents
-          Date: 2026-09-04
-          Related: [AT-0480] components/LandingMain.tsx:.founder-copy, [AT-0485] components/LandingMain.tsx:.bento-card p
+        {/* ─── Ariadne's Thread [AT-0718] ─────────────────────
+          What: Set founder body to Hey this Alex, and this is SeenShot
+          Why:  Cabinet and homepage intro must name SeenShot, one-click agent shots, and sensitive data
+          Date: 2026-10-02
+          Related: [AT-0491] components/LandingMain.tsx:.founder-copy, [AT-0568] content/site-jsonld.ts:PERSON_DESCRIPTION
         ─────────────────────────────────────────────────────── */}
-        <p>Hey, this Alex im serial solofounder. I built this app because im sending feedback to my AI agents many times a day, and I've found they make much better edits when I provide comments and annotations on the screenshot. This app also helps me protect sensitive data phones, emails, passwords, API keys, and even faces from being sent to AI agents.</p>
+        <p>Hey this Alex, and this is SeenShot. This app helps send annotated screenshots to your agents in one click. Also it help protect sensitive data at your screenshots phones, emails, passwords, API keys.</p>
+        {founderAgents ? (
+          <>
+            {/* ─── Ariadne's Thread [AT-0731] ─────────────────────
+              What: Put LedeAgents under the empty-cabinet founder body
+              Why:  Agent marks moved out of the cabinet brand lede. They sit under the intro paragraph
+              Date: 2026-10-02
+              Related: [AT-0722] components/SiteChrome.tsx:.brand .lede, [AT-0718] components/LandingMain.tsx:.founder-copy, [AT-0451] components/LedeAgents.tsx:LedeAgents
+            ─────────────────────────────────────────────────────── */}
+            <LedeAgents screenIt />
+          </>
+        ) : null}
       </div>
     </aside>
+    {/* ─── Ariadne's Thread [AT-0459] ─────────────────────
+      What: Preload none on .hero-shot sharing-demo-3.mp4
+      Why:  Native video lazy: do not download the 3 MB file until autoplay in view
+      Date: 2026-09-03
+      Related: [AT-0458] components/LandingMain.tsx:.hero-shot, https://developer.mozilla.org/en-US/docs/Web/HTML/Element/video#preload
+    ─────────────────────────────────────────────────────── */}
+    <video
+      className="hero-shot"
+      autoPlay
+      muted
+      loop
+      playsInline
+      preload="none"
+      poster="/hero.jpg"
+      width={1264}
+      height={720}
+      aria-label={imageMeta ? imageMeta.title : "SeenShot"}
+    >
+      {/* ─── Ariadne's Thread [AT-0462] ─────────────────────
+        What: Replace the landing hero source with sharing-demo-3.mp4
+        Why:  Production must show the newly supplied sharing demo
+        Date: 2026-09-03
+        Related: [AT-0459] components/LandingMain.tsx:.hero-shot, lib/client/releases.ts:.hero-shot
+      ─────────────────────────────────────────────────────── */}
+      <source src="/sharing-demo-3.mp4" type="video/mp4" />
+    </video>
     <h2>Features</h2>
     <div className="bento">
       {/* ─── Ariadne's Thread [AT-0452] ─────────────────────
@@ -303,9 +323,15 @@ export function LandingMain({
         Date: 2026-08-27
         Related: [AT-0224] public/index.html, [AT-0230] public/index.html
       ─────────────────────────────────────────────────────── */}
+      {/* ─── Ariadne's Thread [AT-0723] ─────────────────────
+        What: Cache-bust Share bento src after replacing /bento/08-share.jpg
+        Why:  The One-click Sharing shot with the agent share row must replace the old Share Link crop
+        Date: 2026-10-02
+        Related: [AT-0232] components/LandingMain.tsx:.bento-shot, public/bento/08-share.jpg
+      ─────────────────────────────────────────────────────── */}
       <article className="bento-card narrow">
         <div className="bento-shot-wrap">
-          <img className="bento-shot" src="/bento/08-share.jpg" loading="lazy" decoding="async" {...landingShotAttrs("Share", imageMeta)} />
+          <img className="bento-shot" src="/bento/08-share.jpg?v=0723" loading="lazy" decoding="async" {...landingShotAttrs("Share", imageMeta)} />
         </div>
         {/* ─── Ariadne's Thread [AT-0487] ─────────────────────
           What: Set Share bento h3 to One-click Share and p to Supports all AI Agents

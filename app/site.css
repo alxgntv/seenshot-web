@@ -99,6 +99,12 @@ html {
   font-size: 18px;
   line-height: 1.2;
 }
+/* ─── Ariadne's Thread [AT-0722] ─────────────────────
+   What: Flex .brand .lede with wrapping LedeAgents on the cmd+shift+2 row
+   Why:  Cabinet header must keep the sentence and the 20px agent marks on one wrapping row
+   Date: 2026-10-02
+   Related: [AT-0713] components/SiteChrome.tsx:.brand .lede, [AT-0404] app/site.css:.hero .lede, [AT-0451] app/site.css:.lede-agents
+─────────────────────────────────────────────────────── */
 .brand .lede {
   margin: 0;
   font-size: 14px;
@@ -106,6 +112,23 @@ html {
   line-height: 1.35;
   opacity: 0.92;
   overflow-wrap: break-word;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.brand:has(.lede-agents) {
+  align-items: flex-start;
+}
+.brand .lede-agents {
+  color: inherit;
+  justify-content: flex-start;
+}
+.brand .lede-lucide {
+  display: block;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
 }
 .topnav nav {
   display: flex;
@@ -449,6 +472,14 @@ h1 {
   height: 20px;
   flex-shrink: 0;
 }
+.lede-agents .lede-lucide {
+  fill: none;
+  stroke: currentColor;
+}
+.lede-agents .lede-arrow {
+  width: 16px;
+  height: 16px;
+}
 /* ─── Ariadne's Thread [AT-0440] ─────────────────────
    What: Mask keep.md Hermes mark onto .lede-agent-hermes
    Why:  The Hermes path is too large to inline; mask keeps currentColor on the blue hero
@@ -730,6 +761,23 @@ video.hero-shot {
   line-height: 1.45;
   opacity: 0.95;
 }
+/* ─── Ariadne's Thread [AT-0731] ─────────────────────
+   What: Stack .founder-copy .lede-agents under the founder body
+   Why:  Empty cabinet agent marks sit below the intro paragraph, left aligned
+   Date: 2026-10-02
+   Related: [AT-0731] components/LandingMain.tsx:.founder-copy, [AT-0451] app/site.css:.lede-agents
+─────────────────────────────────────────────────────── */
+.founder-copy .lede-agents {
+  margin-top: 10px;
+  justify-content: flex-start;
+}
+.lede-agents .lede-screen-it {
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  color: inherit;
+}
 .founder a {
   color: #fff;
   font-weight: 700;
@@ -861,6 +909,38 @@ main.landing > h2#pricing:first-child {
   width: min(720px, 100%);
   margin: 0 auto;
   padding: 12px 0 48px;
+}
+/* ─── Ariadne's Thread [AT-0712] ─────────────────────
+   What: Hide #empty .hero-cta
+   Why:  Empty cabinet Download stays on the left of .cabinet-head, not under the hero lede
+   Date: 2026-10-02
+   Related: [AT-0707] components/SpaceMain.tsx:.cabinet-head, [AT-0703] components/SpaceMain.tsx:#empty-wrap, [AT-0234] app/site.css:.hero-cta
+─────────────────────────────────────────────────────── */
+/* ─── Ariadne's Thread [AT-0714] ─────────────────────
+   What: Hide #empty .hero h1
+   Why:  Empty cabinet must not repeat Seen it Shot it Send It under the topnav
+   Date: 2026-10-02
+   Related: [AT-0712] app/site.css:#empty-wrap, [AT-0225] components/LandingMain.tsx:.hero h1
+─────────────────────────────────────────────────────── */
+/* ─── Ariadne's Thread [AT-0715] ─────────────────────
+   What: Hide #empty Features h2
+   Why:  Empty cabinet presentation must open on the feature cards, not a Features label
+   Date: 2026-10-02
+   Related: [AT-0714] app/site.css:#empty-wrap, [AT-0452] components/LandingMain.tsx:.bento
+─────────────────────────────────────────────────────── */
+/* ─── Ariadne's Thread [AT-0716] ─────────────────────
+   What: Hide the first full bento card in #empty
+   Why:  Empty cabinet must not show Show area for agent above the remaining feature cards
+   Date: 2026-10-02
+   Related: [AT-0715] app/site.css:#empty-wrap, [AT-0445] components/LandingMain.tsx:.bento-card.full
+─────────────────────────────────────────────────────── */
+#empty-wrap .hero-cta,
+#empty-wrap #latest-meta,
+#empty-wrap .hero > p.lede,
+#empty-wrap .hero > h1,
+#empty-wrap .landing > h2:not([id]),
+#empty-wrap .bento > article.bento-card.full:first-child {
+  display: none
 }
 .bento {
   display: grid;
@@ -1344,6 +1424,18 @@ script[type="application/ld+json"] {
   align-items: center;
   justify-content: flex-end;
   gap: 12px;
+}
+/* ─── Ariadne's Thread [AT-0719] ─────────────────────
+   What: Stack cabinet DownloadWrap like homepage .hero-cta
+   Why:  Free macOS 14 or later must sit under the pill on the right of My Screenshots
+   Date: 2026-10-02
+   Related: [AT-0719] components/SpaceMain.tsx:DownloadWrap, [AT-0397] app/site.css:.download-wrap
+─────────────────────────────────────────────────────── */
+.cabinet-actions .download-wrap {
+  align-items: center
+}
+.cabinet-actions .download-arch {
+  text-align: center
 }
 /* ─── Ariadne's Thread [AT-0385] ─────────────────────
    What: Style the /space/redem Polar code field and success card
@@ -2145,6 +2237,10 @@ article.legal.card .error a {
     line-height: 1.35;
     opacity: 0.92;
     overflow-wrap: break-word;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
   }
   /* ─── Ariadne's Thread [AT-0439] ─────────────────────
      What: Absolutely position .topnav-menu[open] nav under .topnav below 600px

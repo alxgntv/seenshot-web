@@ -332,6 +332,35 @@ export function startCabinet() {
     } else {
       console.log("SeenShot cabinet: upgrade button missing");
     }
+    // ─── Ariadne's Thread [AT-0710] ─────────────────────
+    // What: Free #cabinet-download click starts Stripe Member checkout instead of the DMG
+    // Why:  Logged-in free cabinet must open the $29 year price. Paid keeps the file href
+    // Date: 2026-10-02
+    // Related: [AT-0709] lib/client/paid-ui.ts:paintPaidCabinet, [AT-0284] lib/client/cabinet.ts:startCheckout
+    // ─────────────────────────────────────────────────────
+    const cabinetDownload = document.getElementById("cabinet-download")
+    if (cabinetDownload) {
+      cabinetDownload.addEventListener("click", function (event) {
+        const checkout = cabinetDownload.getAttribute("data-checkout") || ""
+        const href = cabinetDownload.getAttribute("href") || ""
+        console.log(
+          "SeenShot cabinet: cabinet-download click checkout=" + checkout +
+            " href=" + href +
+            " hidden=" + String(cabinetDownload.hidden)
+        )
+        if (checkout !== "member") {
+          return
+        }
+        event.preventDefault()
+        startCheckout(cabinetDownload)
+      })
+      console.log(
+        "SeenShot cabinet: cabinet-download bound href=" +
+          (cabinetDownload.getAttribute("href") || "")
+      )
+    } else {
+      console.log("SeenShot cabinet: cabinet-download missing")
+    }
     const appsumo = document.getElementById("buy-appsumo");
     if (appsumo) {
       appsumo.addEventListener("click", function () {
@@ -347,41 +376,60 @@ export function startCabinet() {
 
     async function startCheckout(button) {
       if (button.dataset.busy === "1") {
-        console.warn("SeenShot cabinet: checkout ignored, already in flight");
-        return;
+        console.warn("SeenShot cabinet: checkout ignored, already in flight id=" + (button.id || ""))
+        return
       }
-      button.dataset.busy = "1";
-      button.disabled = true;
+      button.dataset.busy = "1"
+      if (button.tagName === "BUTTON") {
+        button.disabled = true
+      }
       console.log(
-        "SeenShot cabinet: checkout start label=" + (button.textContent || "").trim() +
+        "SeenShot cabinet: checkout start id=" + (button.id || "") +
+          " tag=" + button.tagName +
+          " label=" + (button.textContent || "").trim() +
           " product=member"
-      );
+      )
       try {
-        await SeenShotAuth.ensureIdToken();
+        await SeenShotAuth.ensureIdToken()
         const response = await SeenShotAuth.api("/api/billing/checkout", {
           method: "POST",
           body: "{}",
-        });
-        const text = await response.text();
-        console.log("SeenShot cabinet: checkout status=" + response.status + " bodyChars=" + text.length);
-        let data = {};
+        })
+        const text = await response.text()
+        console.log(
+          "SeenShot cabinet: checkout status=" + response.status +
+            " bodyChars=" + text.length +
+            " id=" + (button.id || "")
+        )
+        let data = {}
         try {
-          data = JSON.parse(text);
+          data = JSON.parse(text)
         } catch (error) {
-          console.error("SeenShot cabinet: checkout JSON failed", error);
+          console.error("SeenShot cabinet: checkout JSON failed id=" + (button.id || ""), error)
         }
         if (!response.ok || !data.url) {
-          console.error("SeenShot cabinet: checkout failed code=" + (data.code || "") + " urlEmpty=" + !data.url);
-          button.dataset.busy = "0";
-          button.disabled = false;
-          return;
+          console.error(
+            "SeenShot cabinet: checkout failed id=" + (button.id || "") +
+              " code=" + (data.code || "") +
+              " urlEmpty=" + !data.url
+          )
+          button.dataset.busy = "0"
+          if (button.tagName === "BUTTON") {
+            button.disabled = false
+          }
+          return
         }
-        console.log("SeenShot cabinet: checkout redirect urlChars=" + data.url.length);
-        location.href = data.url;
+        console.log(
+          "SeenShot cabinet: checkout redirect id=" + (button.id || "") +
+            " urlChars=" + data.url.length
+        )
+        location.href = data.url
       } catch (error) {
-        console.error("SeenShot cabinet: checkout error", error);
-        button.dataset.busy = "0";
-        button.disabled = false;
+        console.error("SeenShot cabinet: checkout error id=" + (button.id || ""), error)
+        button.dataset.busy = "0"
+        if (button.tagName === "BUTTON") {
+          button.disabled = false
+        }
       }
     }
 
