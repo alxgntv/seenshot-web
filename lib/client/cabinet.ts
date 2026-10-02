@@ -84,8 +84,14 @@ export function startCabinet() {
         )
       }
       const cabinetDownload = document.getElementById("cabinet-download");
+      const founderDownload = document.getElementById("founder-download")
+      const founderWrap = founderDownload && founderDownload.closest
+        ? founderDownload.closest(".download-wrap")
+        : null
       console.log(
         "SeenShot cabinet: cabinet-download hidden=" + (cabinetDownload ? String(cabinetDownload.hidden) : "missing") +
+          " founder-download hidden=" + (founderDownload ? String(founderDownload.hidden) : "missing") +
+          " founderWrapHidden=" + (founderWrap ? String(founderWrap.hidden) : "missing") +
           " emptyVisible=" + visible +
           " feedHidden=" + (feed ? String(feed.hidden) : "missing") +
           " emptyClass=" + (empty ? empty.className : "") +
@@ -338,29 +344,39 @@ export function startCabinet() {
     // Date: 2026-10-02
     // Related: [AT-0709] lib/client/paid-ui.ts:paintPaidCabinet, [AT-0284] lib/client/cabinet.ts:startCheckout
     // ─────────────────────────────────────────────────────
-    const cabinetDownload = document.getElementById("cabinet-download")
-    if (cabinetDownload) {
-      cabinetDownload.addEventListener("click", function (event) {
-        const checkout = cabinetDownload.getAttribute("data-checkout") || ""
-        const href = cabinetDownload.getAttribute("href") || ""
+    // ─── Ariadne's Thread [AT-0737] ─────────────────────
+    // What: Bind #founder-download clicks to the same Member checkout as #cabinet-download
+    // Why:  The founder copy of Download must open Stripe when unpaid, and the DMG when paid
+    // Date: 2026-10-02
+    // Related: [AT-0735] components/LandingMain.tsx:#founder-download, [AT-0710] lib/client/cabinet.ts:startCheckout
+    // ─────────────────────────────────────────────────────
+    function bindMemberDownload(link) {
+      if (!link) {
+        console.log("SeenShot cabinet: member-download missing")
+        return
+      }
+      link.addEventListener("click", function (event) {
+        const checkout = link.getAttribute("data-checkout") || ""
+        const href = link.getAttribute("href") || ""
         console.log(
-          "SeenShot cabinet: cabinet-download click checkout=" + checkout +
+          "SeenShot cabinet: member-download click id=" + (link.id || "") +
+            " checkout=" + checkout +
             " href=" + href +
-            " hidden=" + String(cabinetDownload.hidden)
+            " hidden=" + String(link.hidden)
         )
         if (checkout !== "member") {
           return
         }
         event.preventDefault()
-        startCheckout(cabinetDownload)
+        startCheckout(link)
       })
       console.log(
-        "SeenShot cabinet: cabinet-download bound href=" +
-          (cabinetDownload.getAttribute("href") || "")
+        "SeenShot cabinet: member-download bound id=" + (link.id || "") +
+          " href=" + (link.getAttribute("href") || "")
       )
-    } else {
-      console.log("SeenShot cabinet: cabinet-download missing")
     }
+    bindMemberDownload(document.getElementById("cabinet-download"))
+    bindMemberDownload(document.getElementById("founder-download"))
     const appsumo = document.getElementById("buy-appsumo");
     if (appsumo) {
       appsumo.addEventListener("click", function () {

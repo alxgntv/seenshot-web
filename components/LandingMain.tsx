@@ -214,6 +214,13 @@ export function LandingMain({
               Related: [AT-0722] components/SiteChrome.tsx:.brand .lede, [AT-0718] components/LandingMain.tsx:.founder-copy, [AT-0451] components/LedeAgents.tsx:LedeAgents
             ─────────────────────────────────────────────────────── */}
             <LedeAgents screenIt />
+            {/* ─── Ariadne's Thread [AT-0735] ─────────────────────
+              What: Copy cabinet Download under empty-cabinet .founder-copy
+              Why:  The same Apple Download pill must sit under the founder intro, not only in .cabinet-head
+              Date: 2026-10-02
+              Related: [AT-0729] components/SpaceMain.tsx:#cabinet-download, [AT-0736] lib/client/paid-ui.ts:paintPaidCabinet
+            ─────────────────────────────────────────────────────── */}
+            <DownloadWrap id="founder-download" label="Download" arch="" hidden={true} />
           </>
         ) : null}
       </div>

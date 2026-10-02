@@ -71,7 +71,8 @@ function isPublicAppDownloadLink(node) {
     link.id === "upgrade-pro" ||
     link.id === "redeem-promocode" ||
     link.id === "buy-appsumo" ||
-    link.id === "cabinet-download"
+    link.id === "cabinet-download" ||
+    link.id === "founder-download"
   ) {
     // ─── Ariadne's Thread [AT-0692] ─────────────────────
     // What: Do not intercept Pay with card, Redeem, or Buy on AppSumo as app downloads

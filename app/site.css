@@ -771,6 +771,21 @@ video.hero-shot {
   margin-top: 10px;
   justify-content: flex-start;
 }
+/* ─── Ariadne's Thread [AT-0735] ─────────────────────
+   What: Left-align .founder-copy Download under the agent row
+   Why:  #empty .download-wrap centers homepage pills. Founder CTA must follow the intro text
+   Date: 2026-10-02
+   Related: [AT-0735] components/LandingMain.tsx:#founder-download, [AT-0433] app/site.css:#empty .download-wrap
+─────────────────────────────────────────────────────── */
+.founder-copy .download-wrap,
+#empty .founder-copy .download-wrap {
+  margin-top: 14px;
+  align-items: flex-start;
+}
+.founder a.download {
+  color: #111;
+  font-weight: 800;
+}
 .lede-agents .lede-screen-it {
   font-size: 14px;
   font-weight: 700;

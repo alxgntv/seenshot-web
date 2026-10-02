@@ -89,10 +89,19 @@ export function startReleases() {
     const founderAgents = document.querySelector(".founder-copy .lede-agents")
     const founderAgentMarks = founderAgents ? founderAgents.querySelectorAll(".lede-agent") : []
     const founderBody = document.querySelector(".founder-copy > p:not(.founder-head)")
+    const founderDownload = document.getElementById("founder-download")
+    const founderDownloadWrap = founderDownload && founderDownload.closest
+      ? founderDownload.closest(".download-wrap")
+      : null
     console.log(
       "SeenShot site: founder lede-agents=" + Boolean(founderAgents) +
         " marks=" + founderAgentMarks.length +
-        " afterBody=" + Boolean(founderBody && founderAgents && founderBody.nextElementSibling === founderAgents)
+        " afterBody=" + Boolean(founderBody && founderAgents && founderBody.nextElementSibling === founderAgents) +
+        " founderDownload=" + Boolean(founderDownload) +
+        " founderDownloadHidden=" + (founderDownload ? String(founderDownload.hidden) : "missing") +
+        " founderWrapAfterAgents=" + Boolean(
+          founderAgents && founderDownloadWrap && founderAgents.nextElementSibling === founderDownloadWrap
+        )
     )
     // ─── Ariadne's Thread [AT-0305] ─────────────────────
     // What: Log .brand img src after the logo returned to the topnav
@@ -2278,9 +2287,10 @@ export function startReleases() {
         link.setAttribute("href", href)
         const apple = link.querySelector(".download-apple")
         const label = link.querySelector(".download-label")
-        if (link.id === "cabinet-download") {
+        if (link.id === "cabinet-download" || link.id === "founder-download") {
           console.log(
-            "SeenShot site: cabinet-download href=" + href +
+            "SeenShot site: member-download href id=" + link.id +
+              " href=" + href +
               " label=" + (label ? (label.textContent || "").trim() : "") +
               " hidden=" + String(link.hidden)
           )
