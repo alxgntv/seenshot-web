@@ -1608,6 +1608,40 @@ export function startReleases() {
         }
       }
       if (title && title.textContent === "Member") {
+        // ─── Ariadne's Thread [AT-0690] ─────────────────────
+        // What: Log Member rows that moved off the removed Free card
+        // Why:  $29 / year must list Free tools and must not list 10 MB storage
+        // Date: 2026-10-02
+        // Related: [AT-0690] components/PricingCards.tsx, [AT-0412] lib/client/releases.ts
+        // ─────────────────────────────────────────────────────
+        const memberTexts = Array.prototype.map.call(items, function (item) {
+          return (item.textContent || "").trim()
+        })
+        const memberHasInstant = memberTexts.some(function (text) {
+          return text.indexOf("Instant sharing with:") === 0
+        })
+        const memberHasTenMb = memberTexts.some(function (text) {
+          return text.indexOf("10 MB screenshot storage") !== -1
+        })
+        const memberHasEverythingInFree = memberTexts.some(function (text) {
+          return text === "Everything in Free."
+        })
+        console.log(
+          "SeenShot site: memberMovedFeatures count=" + memberTexts.length +
+            " hasInstant=" + String(memberHasInstant) +
+            " hasTenMb=" + String(memberHasTenMb) +
+            " hasEverythingInFree=" + String(memberHasEverythingInFree) +
+            " features=" + memberTexts.join(" | ")
+        )
+        if (!memberHasInstant) {
+          console.error("SeenShot site: Member list missing Instant sharing with")
+        }
+        if (memberHasTenMb) {
+          console.error("SeenShot site: Member list must not include 10 MB screenshot storage")
+        }
+        if (memberHasEverythingInFree) {
+          console.error("SeenShot site: Member list still says Everything in Free")
+        }
         const first = items[0] ? (items[0].textContent || "") : "";
         let noWatermarkLi = "";
         let hasNoWatermark = false;
@@ -2196,7 +2230,8 @@ export function startReleases() {
     function setLatestDownloadHref(href) {
       const links = document.querySelectorAll(".download-wrap a.download");
       const navDownload = document.getElementById("nav-download");
-      if (links.length === 0 && !navDownload) {
+      const cabinetDownload = document.getElementById("cabinet-download");
+      if (links.length === 0 && !navDownload && !cabinetDownload) {
         console.warn("SeenShot site: no download-wrap anchors href=" + href);
         return;
       }
@@ -2214,17 +2249,46 @@ export function startReleases() {
       // Date: 2026-09-05
       // Related: [AT-0525] components/SiteChrome.tsx:#nav-download, [AT-0517] components/DownloadPill.tsx
       // ─────────────────────────────────────────────────────
-      if (navDownload) {
-        navDownload.setAttribute("href", href);
-        const apple = navDownload.querySelector(".download-apple");
-        const label = navDownload.querySelector(".download-label");
+      function paintDownloadHref(link) {
+        if (!link) {
+          return
+        }
+        link.setAttribute("href", href)
+        const apple = link.querySelector(".download-apple")
+        const label = link.querySelector(".download-label")
+        // ─── Ariadne's Thread [AT-0702] ─────────────────────
+        // What: Paint #cabinet-download as Download. ARM or Download. x86
+        // Why:  Signed-in cabinet CTA must name the matching Mac chip after the period
+        // Date: 2026-10-02
+        // Related: [AT-0685] components/SpaceMain.tsx:#cabinet-download, [AT-0516] lib/client/releases.ts:detectMacArch
+        // ─────────────────────────────────────────────────────
+        if (link.id === "cabinet-download" && label) {
+          const chip = href.indexOf("x86") !== -1 ? "x86" : "ARM"
+          const chipLabel = "Download. " + chip
+          label.textContent = chipLabel
+          link.setAttribute("data-label", chipLabel)
+          console.log(
+            "SeenShot site: cabinet-download chip=" + chip +
+              " href=" + href +
+              " label=" + chipLabel +
+              " hidden=" + String(link.hidden)
+          )
+        }
         console.log(
-          "SeenShot site: download href id=" + (navDownload.id || "") +
+          "SeenShot site: download href id=" + (link.id || "") +
             " href=" + href +
-            " label=" + (label ? (label.textContent || "").trim() : (navDownload.textContent || "").trim()) +
+            " label=" + (label ? (label.textContent || "").trim() : (link.textContent || "").trim()) +
             " hasApple=" + Boolean(apple)
-        );
+        )
       }
+      paintDownloadHref(navDownload)
+      // ─── Ariadne's Thread [AT-0685] ─────────────────────
+      // What: Point #cabinet-download at the same arch DMG as the empty-card pill
+      // Why:  Signed-in cabinet Download must follow chip detect after public CTAs stopped serving the file
+      // Date: 2026-10-02
+      // Related: [AT-0685] components/SpaceMain.tsx:#cabinet-download, [AT-0525] lib/client/releases.ts:setLatestDownloadHref
+      // ─────────────────────────────────────────────────────
+      paintDownloadHref(cabinetDownload)
     }
 
     function latestDownloadLabel(latestLink, fallback) {

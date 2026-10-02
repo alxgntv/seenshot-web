@@ -17,7 +17,15 @@ function CommentBody({ body }: { body: string }) {
 // Date: 2026-09-03
 // Related: [AT-0474] content/wall-of-love.ts, [AT-0476] app/site.css:.wall-of-love
 // ─────────────────────────────────────────────────────
-export function WallOfLove() {
+export function WallOfLove({
+  imageMeta,
+}: {
+  imageMeta?: { title: string, description: string }
+} = {}) {
+  console.log(
+    "SeenShot site: WallOfLove comments=" + wallOfLoveComments.length +
+      " imageTitle=" + (imageMeta ? imageMeta.title : "")
+  )
   return (
     <section className="wall-of-love" aria-labelledby="wall-of-love-heading">
       <h2 id="wall-of-love-heading">Wall of Love</h2>
@@ -35,7 +43,9 @@ export function WallOfLove() {
                 <img
                   className="wall-of-love-avatar"
                   src={comment.avatar}
-                  alt={"Avatar for " + comment.name}
+                  alt={imageMeta ? imageMeta.title : "Avatar for " + comment.name}
+                  title={imageMeta ? imageMeta.title : undefined}
+                  description={imageMeta ? imageMeta.description : undefined}
                   width={32}
                   height={32}
                   loading="lazy"

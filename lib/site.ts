@@ -263,9 +263,13 @@ function r2Dmg(object: R2Object | R2ObjectBody, method: string, filename: string
   headers.set("content-disposition", disposition);
   headers.set("etag", object.httpEtag);
   headers.set("content-length", String(object.size));
-  if (!headers.has("cache-control")) {
-    headers.set("cache-control", "public, max-age=300");
-  }
+  // ─── Ariadne's Thread [AT-0679] ─────────────────────
+  // What: Stop public CDN caching of the latest DMG
+  // Why:  Unsigned clients must not receive a cached 200 after /download became session-gated
+  // Date: 2026-10-02
+  // Related: [AT-0679] lib/site.ts:serveLatestMacDmg, [AT-0522] lib/site.ts:r2Dmg
+  // ─────────────────────────────────────────────────────
+  headers.set("cache-control", "private, no-store")
   headers.set("x-robots-tag", "noindex, nofollow");
   const hasBody = "body" in object && Boolean((object as R2ObjectBody).body);
   if (method === "HEAD" || !hasBody) {
@@ -356,6 +360,98 @@ export async function serveLatestMacDmg(request: Request, env: SeenShotEnv): Pro
       status: 404,
       headers: { "content-type": "text/plain; charset=utf-8" },
     });
+  }
+  // ─── Ariadne's Thread [AT-0679] ─────────────────────
+  // What: Require a Firebase session before streaming the latest Mac DMG
+  // Why:  App download is only from the signed-in cabinet. Unsigned /download must go to Create account
+  // Date: 2026-10-02
+  // Related: [AT-0681] frontend→lib/client/signup-modal.ts:startSignupModal, [AT-0003] lib/auth.ts:uidFromRequest
+  // ─────────────────────────────────────────────────────
+  let uid = ""
+  try {
+    uid = await uidFromRequest(request, env.FIREBASE_PROJECT_ID)
+    console.log(
+      "index: download authorized uid=" + uid +
+        " arch=" + arch +
+        " method=" + method
+    )
+  } catch (error) {
+    const signup = new URL("/signup", url.origin)
+    signup.searchParams.set("next", "/space/")
+    const code = error instanceof Error ? error.message : "STORAGE_NEED_SIGN_IN"
+    console.warn(
+      "index: download unsigned code=" + code +
+        " redirect=" + signup.pathname + signup.search +
+        " arch=" + arch +
+        " method=" + method
+    )
+    return new Response(null, {
+      status: 302,
+      headers: {
+        location: signup.pathname + signup.search,
+        "cache-control": "no-store",
+        "x-robots-tag": "noindex, nofollow",
+      },
+    })
+  }
+  // ─── Ariadne's Thread [AT-0688] ─────────────────────
+  // What: Require plan=pro or active grace before streaming the Mac DMG
+  // Why:  Cabinet download is only after a paid Member. Free sign-up must not fetch the app
+  // Date: 2026-10-02
+  // Related: [AT-0687] frontend→lib/client/paid-ui.ts:planIsPaid, [AT-0071] lib/site.ts:me
+  // ─────────────────────────────────────────────────────
+  try {
+    const row = await env.DB.prepare("SELECT plan, grace_ends_at FROM users WHERE uid = ?")
+      .bind(uid)
+      .first<{ plan: string, grace_ends_at: number | null }>()
+    const plan = row && typeof row.plan === "string" ? row.plan : "free"
+    const graceEndsAt = row && typeof row.grace_ends_at === "number" ? row.grace_ends_at : null
+    const graceActive = plan === "grace" && typeof graceEndsAt === "number" && graceEndsAt > Date.now()
+    const paid = plan === "pro" || graceActive
+    console.log(
+      "index: download plan uid=" + uid +
+        " found=" + Boolean(row) +
+        " plan=" + plan +
+        " graceActive=" + String(graceActive) +
+        " paid=" + String(paid) +
+        " arch=" + arch
+    )
+    if (!paid) {
+      console.warn(
+        "index: download unpaid uid=" + uid +
+          " plan=" + plan +
+          " redirect=/space/"
+      )
+      return new Response(null, {
+        status: 302,
+        headers: {
+          location: "/space/",
+          "cache-control": "no-store",
+          "x-robots-tag": "noindex, nofollow",
+        },
+      })
+    }
+    console.log(
+      "index: download paid continue uid=" + uid +
+        " plan=" + plan +
+        " arch=" + arch +
+        " method=" + method
+    )
+  } catch (error) {
+    console.error(
+      "index: download plan lookup failed uid=" + uid +
+        " arch=" + arch +
+        " redirect=/space/",
+      error
+    )
+    return new Response(null, {
+      status: 302,
+      headers: {
+        location: "/space/",
+        "cache-control": "no-store",
+        "x-robots-tag": "noindex, nofollow",
+      },
+    })
   }
   const key = latestReleaseKey(arch);
   let filename = "SeenShot-" + arch + ".dmg";
@@ -514,7 +610,7 @@ export async function billingCheckout(request: Request, env: SeenShotEnv): Promi
   } catch (error) {
     console.log("index: billingCheckout empty body, default member");
   }
-  console.log(`index: billingCheckout api=${apiUrl} ipChars=${ip.length} product=${product} signedIn=${signedIn}`);
+  console.log(`index: billingCheckout api=${apiUrl} ipChars=${ip.length} product=${product} signedIn=${signedIn} stripe=true`);
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
   };
@@ -713,8 +809,19 @@ export async function shotImage(request: Request, env: SeenShotEnv): Promise<Res
 export async function publicPng(request: Request, env: SeenShotEnv): Promise<Response> {
   const pathname = new URL(request.url).pathname;
   const prefix = pathname.startsWith("/api/public/") ? "/api/public/" : "/public/";
-  const file = pathname.slice(prefix.length);
-  const id = file.replace(/\.png$/, "");
+  // ─── Ariadne's Thread [AT-0694] ─────────────────────
+  // What: Drop a trailing slash before reading the public PNG id
+  // Why:  trailingSlash turns /public/{id}.png into /public/{id}.png/ and safeId then rejects the file
+  // Date: 2026-10-02
+  // Related: [AT-0050] lib/site.ts:publicPng, [AT-0615] next.config.ts:trailingSlash, [AT-0069] lib/client/cabinet.ts:imageSrc
+  // ─────────────────────────────────────────────────────
+  let file = pathname.slice(prefix.length)
+  if (file.endsWith("/")) {
+    const stripped = file.slice(0, -1)
+    console.log("index: publicPng strip trailing slash file=" + file + " stripped=" + stripped)
+    file = stripped
+  }
+  const id = file.replace(/\.png$/, "")
   console.log(
     `index: publicPng prefix=${prefix} file=${file} id=${id} url=${request.url} ifNoneMatch=${request.headers.get("if-none-match") ?? "none"}`,
   );

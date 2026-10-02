@@ -6,6 +6,7 @@
    Related: [AT-0008] public/js/auth.js
 ─────────────────────────────────────────────────────── */
 import { SeenShotAuth } from "./auth";
+import { paintPaidCabinet, planIsPaid } from "./paid-ui";
 /* ─── Ariadne's Thread [AT-0009] ─────────────────────
    What: Top nav Sign In / email / Sign Out from the Firebase session
    Why:  Landing, cabinet, and shot pages share one header
@@ -190,6 +191,11 @@ export function startNav() {
         console.log("SeenShot nav: topnav-menu missing");
         return;
       }
+      if (menu.hidden) {
+        menu.open = false
+        console.log("SeenShot nav: topnav-menu skip sync hidden")
+        return
+      }
       const mobile = window.matchMedia("(max-width: 600px)").matches;
       menu.open = !mobile;
       const summary = menu.querySelector("summary");
@@ -244,6 +250,11 @@ export function startNav() {
         redeemLink.hidden = true;
         console.log("SeenShot nav: redeem promocode hidden");
       }
+      const appsumo = document.getElementById("buy-appsumo");
+      if (appsumo) {
+        appsumo.hidden = true;
+        console.log("SeenShot nav: appsumo hidden");
+      }
     }
 
     // ─── Ariadne's Thread [AT-0385] ─────────────────────
@@ -259,6 +270,166 @@ export function startNav() {
       }
       form.hidden = true;
       console.log("SeenShot nav: redeem hidden");
+    }
+
+    // ─── Ariadne's Thread [AT-0701] ─────────────────────
+    // What: Hide header Pricing and Download while a Firebase session exists
+    // Why:  Signed-in chrome keeps Sign Out. Pricing and Download are for guests
+    // Date: 2026-10-02
+    // Related: [AT-0525] components/SiteChrome.tsx:TopNav, [AT-0526] lib/client/nav.ts:paint
+    // ─────────────────────────────────────────────────────
+    function setGuestHeaderLinks(visible) {
+      const pricing = document.getElementById("nav-pricing")
+      const navDownload = document.getElementById("nav-download")
+      const menu = document.querySelector("details.topnav-menu")
+      if (pricing) {
+        pricing.hidden = !visible
+      }
+      if (navDownload) {
+        navDownload.hidden = !visible
+      }
+      if (menu) {
+        menu.hidden = !visible
+        if (!visible) {
+          menu.open = false
+        }
+      }
+      console.log(
+        "SeenShot nav: guestHeader visible=" + visible +
+          " pricingHidden=" + (pricing ? String(pricing.hidden) : "missing") +
+          " downloadHidden=" + (navDownload ? String(navDownload.hidden) : "missing") +
+          " menuHidden=" + (menu ? String(menu.hidden) : "missing")
+      )
+      if (visible) {
+        syncTopnavMenu()
+      }
+    }
+
+    function pageImageMeta() {
+      const title = (document.title || "SeenShot").trim()
+      const descNode = document.querySelector('meta[name="description"]')
+      const description = descNode ? (descNode.getAttribute("content") || "").trim() : ""
+      const desc = description || title
+      console.log(
+        "SeenShot nav: pageImageMeta title=" + title +
+          " descChars=" + desc.length
+      )
+      return { title: title, description: desc }
+    }
+
+    function photoFromIdToken(idToken) {
+      if (!idToken) {
+        console.log("SeenShot nav: idToken picture skipped empty")
+        return ""
+      }
+      try {
+        const parts = String(idToken).split(".")
+        if (parts.length < 2) {
+          console.warn("SeenShot nav: idToken picture skipped parts=" + parts.length)
+          return ""
+        }
+        const paddedRaw = parts[1].replace(/-/g, "+").replace(/_/g, "/")
+        const pad = paddedRaw.length % 4
+        const padded = pad ? paddedRaw + "====".slice(0, 4 - pad) : paddedRaw
+        const json = atob(padded)
+        const payload = JSON.parse(json)
+        const picture = typeof payload.picture === "string" ? payload.picture.trim() : ""
+        console.log(
+          "SeenShot nav: idToken pictureChars=" + picture.length +
+            " sub=" + (payload.sub || payload.user_id || "")
+        )
+        return picture
+      } catch (err) {
+        console.warn("SeenShot nav: idToken picture parse failed", err)
+        return ""
+      }
+    }
+
+    function avatarLetter(email) {
+      const trimmed = String(email || "").trim()
+      const ch = trimmed.charAt(0)
+      const letter = ch ? ch.toUpperCase() : "S"
+      console.log("SeenShot nav: avatarLetter=" + letter + " emailChars=" + trimmed.length)
+      return letter
+    }
+
+    // ─── Ariadne's Thread [AT-0705] ─────────────────────
+    // What: Paint #nav-account avatar from the Firebase picture claim or an email letter
+    // Why:  Signed-in header shows an avatar. Sign Out stays inside the dropdown
+    // Date: 2026-10-02
+    // Related: [AT-0705] components/SiteChrome.tsx:#nav-account, [AT-0009] lib/client/nav.ts:paint
+    // ─────────────────────────────────────────────────────
+    function setAccountMenu(visible, email, idToken) {
+      const account = document.getElementById("nav-account")
+      const img = document.getElementById("nav-avatar")
+      const fallback = document.getElementById("nav-avatar-fallback")
+      const signOutBtn = document.getElementById("sign-out")
+      if (!account) {
+        console.log(
+          "SeenShot nav: nav-account missing visible=" + visible +
+            " emailChars=" + String(email || "").length
+        )
+        return
+      }
+      account.hidden = !visible
+      if (!visible) {
+        account.open = false
+        if (signOutBtn) {
+          signOutBtn.hidden = true
+        }
+        if (img) {
+          img.hidden = true
+          img.removeAttribute("src")
+          img.alt = ""
+          img.removeAttribute("title")
+          img.removeAttribute("description")
+        }
+        if (fallback) {
+          fallback.hidden = true
+          fallback.textContent = ""
+        }
+        console.log("SeenShot nav: account hidden")
+        return
+      }
+      if (signOutBtn) {
+        signOutBtn.hidden = false
+      }
+      const photo = photoFromIdToken(idToken)
+      const letter = avatarLetter(email)
+      const meta = pageImageMeta()
+      if (photo && img) {
+        img.hidden = false
+        img.src = photo
+        img.alt = meta.title
+        img.title = meta.title
+        img.setAttribute("description", meta.description)
+        if (fallback) {
+          fallback.hidden = true
+          fallback.textContent = letter
+        }
+      } else {
+        if (img) {
+          img.hidden = true
+          img.removeAttribute("src")
+          img.alt = meta.title
+          img.title = meta.title
+          img.setAttribute("description", meta.description)
+        }
+        if (fallback) {
+          fallback.hidden = false
+          fallback.textContent = letter
+        }
+      }
+      const cabinet = document.getElementById("nav-cabinet")
+      console.log(
+        "SeenShot nav: account visible photo=" + Boolean(photo) +
+          " letter=" + letter +
+          " imgHidden=" + (img ? String(img.hidden) : "missing") +
+          " fallbackHidden=" + (fallback ? String(fallback.hidden) : "missing") +
+          " signOutHidden=" + (signOutBtn ? String(signOutBtn.hidden) : "missing") +
+          " cabinetHref=" + (cabinet ? cabinet.getAttribute("href") || "" : "missing") +
+          " open=" + String(account.open)
+      )
     }
 
     function formatMb(bytes) {
@@ -293,7 +464,6 @@ export function startNav() {
       const seq = paintSeq + 1;
       paintSeq = seq;
       const link = document.getElementById("nav-auth");
-      const signOut = document.getElementById("sign-out");
       if (!link) {
         console.log("SeenShot nav: no nav-auth link");
         return;
@@ -304,15 +474,16 @@ export function startNav() {
         link.textContent = "Sign In";
         link.href = "/signin";
         link.onclick = null;
-        if (signOut) {
-          signOut.hidden = true;
-        }
+        setAccountMenu(false)
         hideQuota();
+        paintPaidCabinet("free", null)
         hideUpgrade();
         hideRedeem();
+        setGuestHeaderLinks(true)
         console.log(
-          "SeenShot nav: signed out signOutPresent=" + Boolean(signOut) +
-            " navAuthHidden=" + link.hidden
+          "SeenShot nav: signed out signOutPresent=" + Boolean(document.getElementById("sign-out")) +
+            " navAuthHidden=" + link.hidden +
+            " accountHidden=" + (document.getElementById("nav-account") ? String(document.getElementById("nav-account").hidden) : "missing")
         );
         return;
       }
@@ -334,12 +505,12 @@ export function startNav() {
         link.hidden = false;
         link.textContent = "Sign In";
         link.href = "/signin";
-        if (signOut) {
-          signOut.hidden = true;
-        }
+        setAccountMenu(false)
         hideQuota();
+        paintPaidCabinet("free", null)
         hideUpgrade();
         hideRedeem();
+        setGuestHeaderLinks(true)
         console.log("SeenShot nav: nav-auth visible after ensure fail hidden=" + link.hidden);
         return;
       }
@@ -351,14 +522,13 @@ export function startNav() {
       link.hidden = true;
       link.textContent = fresh.email || "Space";
       link.href = "/space/";
-      if (signOut) {
-        signOut.hidden = false;
-      }
+      setAccountMenu(true, fresh.email, fresh.idToken)
+      setGuestHeaderLinks(false)
       console.log(
         "SeenShot nav: signed in emailChars=" + (fresh.email || "").length +
           " navAuthHidden=" + link.hidden +
           " navAuthDisplay=" + getComputedStyle(link).display +
-          " signOutVisible=" + Boolean(signOut && !signOut.hidden)
+          " accountHidden=" + (document.getElementById("nav-account") ? String(document.getElementById("nav-account").hidden) : "missing")
       );
       const quota = quotaNode();
       if (!quota) {
@@ -374,6 +544,7 @@ export function startNav() {
         if (!response.ok) {
           console.warn("SeenShot nav: me status=" + response.status);
           hideQuota();
+          paintPaidCabinet("free", null)
           hideUpgrade();
           hideRedeem();
           return;
@@ -383,6 +554,8 @@ export function startNav() {
         const limit = typeof data.limitBytes === "number" ? data.limitBytes : 10 * 1024 * 1024;
         const used = typeof data.usedBytes === "number" ? data.usedBytes : 0;
         const plan = typeof data.plan === "string" ? data.plan : "free";
+        const graceEndsAt = data.graceEndsAt
+        paintPaidCabinet(plan, graceEndsAt)
         const text = planLabel(plan) + ": " + formatMb(limit) + ", available " + formatMb(remaining);
         quota.hidden = false;
         quota.textContent = text;
@@ -401,33 +574,36 @@ export function startNav() {
         // Related: [AT-0282] public/space/index.html, [AT-0072] public/js/nav.js:paint
         // ─────────────────────────────────────────────────────
         const upgrade = document.getElementById("upgrade-pro");
+        const appsumo = document.getElementById("buy-appsumo");
+        const redeemLink = document.getElementById("redeem-promocode");
+        const paid = planIsPaid(plan, graceEndsAt)
         if (upgrade) {
-          upgrade.hidden = plan === "pro";
           console.log(
             "SeenShot nav: upgrade hidden=" + upgrade.hidden +
               " display=" + getComputedStyle(upgrade).display +
               " plan=" + plan +
+              " paid=" + paid +
               " label=" + upgrade.textContent
           );
         }
-        const redeemLink = document.getElementById("redeem-promocode");
+        if (appsumo) {
+          console.log(
+            "SeenShot nav: appsumo hidden=" + appsumo.hidden +
+              " href=" + (appsumo.getAttribute("href") || "") +
+              " plan=" + plan +
+              " paid=" + paid
+          );
+        }
         if (redeemLink) {
-          // ─── Ariadne's Thread [AT-0431] ─────────────────────
-          // What: Show Redeem promocode when plan is not pro
-          // Why:  Same cabinet-actions gate as Upgrade; Member already has the grant
-          // Date: 2026-09-03
-          // Related: [AT-0283] lib/client/nav.ts:paint, [AT-0385] lib/client/redem.ts
-          // ─────────────────────────────────────────────────────
-          redeemLink.hidden = plan === "pro";
-          redeemLink.hidden = plan === "pro";
           console.log(
             "SeenShot nav: redeem promocode hidden=" + redeemLink.hidden +
               " href=" + (redeemLink.getAttribute("href") || "") +
-              " plan=" + plan
+              " plan=" + plan +
+              " paid=" + paid
           );
         }
         if (
-          (upgrade || redeemLink) &&
+          (upgrade || redeemLink || appsumo) &&
           window.SeenShotCabinet &&
           typeof window.SeenShotCabinet.logActions === "function"
         ) {
@@ -435,8 +611,8 @@ export function startNav() {
         }
         const redeemForm = document.getElementById("redeem-form");
         if (redeemForm) {
-          redeemForm.hidden = plan === "pro";
-          console.log("SeenShot nav: redeem hidden=" + redeemForm.hidden + " plan=" + plan);
+          redeemForm.hidden = paid
+          console.log("SeenShot nav: redeem hidden=" + redeemForm.hidden + " plan=" + plan + " paid=" + paid);
         }
       } catch (error) {
         console.error("SeenShot nav: quota failed", error);
@@ -444,6 +620,7 @@ export function startNav() {
           return;
         }
         hideQuota();
+        paintPaidCabinet("free", null)
         hideUpgrade();
         hideRedeem();
       }
@@ -455,6 +632,19 @@ export function startNav() {
     // Date: 2026-08-27
     // Related: [AT-0009] public/js/nav.js:paint, [AT-0008] public/js/auth.js:clearSession
     // ─────────────────────────────────────────────────────
+    const cabinet = document.getElementById("nav-cabinet")
+    if (cabinet) {
+      cabinet.addEventListener("click", function () {
+        console.log(
+          "SeenShot nav: cabinet click href=" + (cabinet.getAttribute("href") || "") +
+            " path=" + location.pathname
+        )
+      })
+      console.log("SeenShot nav: cabinet link bound href=" + (cabinet.getAttribute("href") || ""))
+    } else {
+      console.log("SeenShot nav: nav-cabinet missing")
+    }
+
     const signOut = document.getElementById("sign-out");
     if (signOut) {
       signOut.addEventListener("click", function () {
@@ -464,6 +654,64 @@ export function startNav() {
       });
     } else {
       console.log("SeenShot nav: no sign-out button");
+    }
+
+    const account = document.getElementById("nav-account")
+    const navAvatar = document.getElementById("nav-avatar")
+    if (account) {
+      account.addEventListener("toggle", function () {
+        console.log(
+          "SeenShot nav: account toggle open=" + account.open +
+            " hidden=" + String(account.hidden) +
+            " vw=" + window.innerWidth
+        )
+      })
+      document.addEventListener("click", function (event) {
+        if (!account.open || account.hidden) {
+          return
+        }
+        const target = event.target
+        if (target && account.contains(target)) {
+          return
+        }
+        account.open = false
+        console.log("SeenShot nav: account closed outside click")
+      })
+      document.addEventListener("keydown", function (event) {
+        if (event.key !== "Escape") {
+          return
+        }
+        if (!account.open || account.hidden) {
+          return
+        }
+        account.open = false
+        console.log("SeenShot nav: account closed escape")
+      })
+    } else {
+      console.log("SeenShot nav: nav-account missing")
+    }
+    if (navAvatar) {
+      navAvatar.addEventListener("error", function () {
+        const fallback = document.getElementById("nav-avatar-fallback")
+        const session = SeenShotAuth.readSession()
+        const letter = avatarLetter(session.email)
+        navAvatar.hidden = true
+        navAvatar.removeAttribute("src")
+        if (fallback) {
+          fallback.hidden = false
+          fallback.textContent = letter
+        }
+        console.warn(
+          "SeenShot nav: avatar image failed letter=" + letter +
+            " fallbackHidden=" + (fallback ? String(fallback.hidden) : "missing")
+        )
+      })
+      navAvatar.addEventListener("load", function () {
+        console.log(
+          "SeenShot nav: avatar loaded natural=" + navAvatar.naturalWidth + "x" + navAvatar.naturalHeight +
+            " srcChars=" + String(navAvatar.currentSrc || "").length
+        )
+      })
     }
 
     const menu = document.querySelector("details.topnav-menu");

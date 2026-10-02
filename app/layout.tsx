@@ -3,9 +3,11 @@ import Script from "next/script"
 import { headers } from "next/headers"
 import { ClientBoot } from "@/components/ClientBoot"
 import { LandingDocumentHead } from "@/components/LandingDocumentHead"
+import { SignupModal } from "@/components/SignupModal"
 import { SupportChat } from "@/components/SupportChat"
 import { getLanding } from "@/content/landings/catalog"
 import "./support-chat.css"
+import "./signup-modal.css"
 
 // ─── Ariadne's Thread [AT-0416] ─────────────────────
 // What: Root layout without site.css so share pages can paint black
@@ -60,10 +62,17 @@ export default async function RootLayout({
   const pathname = headerList.get("x-seenshot-pathname") || "/"
   const landing = await loadLandingForHead(pathname)
   const isHome = pathname === "/"
+  const trimmedPath =
+    pathname.length > 1 && pathname.endsWith("/") ? pathname.slice(0, -1) : pathname
+  const showSignupModal =
+    trimmedPath !== "/signin" &&
+    trimmedPath !== "/signup" &&
+    trimmedPath !== "/oauth/authorize"
   console.log(
     "SeenShot site: RootLayout pathname=" + pathname +
       " landing=" + (landing ? landing.slug : "none") +
-      " home=" + isHome
+      " home=" + isHome +
+      " signupModal=" + String(showSignupModal)
   )
   return (
     <html lang="en">
@@ -110,6 +119,13 @@ export default async function RootLayout({
           Related: [AT-0563] components/SupportChat.tsx, [AT-0430] components/ClientBoot.tsx
         ─────────────────────────────────────────────────────── */}
         {children}
+        {/* ─── Ariadne's Thread [AT-0680] ─────────────────────
+          What: Mount #signup-modal on every page except Sign In, Create account, and OAuth
+          Why:  Public Download opens Create account in a dialog. Those auth URLs already render SignInForm
+          Date: 2026-10-02
+          Related: [AT-0680] components/SignupModal.tsx, [AT-0681] lib/client/signup-modal.ts:startSignupModal
+        ─────────────────────────────────────────────────────── */}
+        {showSignupModal ? <SignupModal /> : null}
         <SupportChat />
       </body>
     </html>

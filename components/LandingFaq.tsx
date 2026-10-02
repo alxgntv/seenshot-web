@@ -14,28 +14,39 @@ import { JsonLdScript } from "./JsonLdScript";
 // Date: 2026-09-05
 // Related: [AT-0584] content/landing-faq.ts:landingFaqJsonLd, [AT-0589] components/LandingPageMain.tsx, [AT-0565] components/LandingFaq.tsx
 // ─────────────────────────────────────────────────────
+// ─── Ariadne's Thread [AT-0704] ─────────────────────
+// What: Allow LandingFaq to skip FAQPage JSON-LD
+// Why:  Empty cabinet reuses FAQ copy and must not emit homepage FAQ schema
+// Date: 2026-10-02
+// Related: [AT-0703] components/SpaceMain.tsx:#empty-wrap, [AT-0566] components/LandingFaq.tsx:JsonLdScript
+// ─────────────────────────────────────────────────────
 export function LandingFaq({
   items = landingFaqItems,
   pageUrl = "https://seenshot.app/",
+  emitJsonLd = true,
 }: {
   items?: LandingFaqItem[];
   pageUrl?: string;
+  emitJsonLd?: boolean
 } = {}) {
   if (items.length === 0) {
     console.log("SeenShot site: LandingFaq skip empty items pageUrl=" + pageUrl);
     return null;
   }
-  const jsonLd = landingFaqJsonLd(items, pageUrl);
-  const jsonLdHtml = JSON.stringify(jsonLd).replace(/</g, "\\u003c");
+  const jsonLd = emitJsonLd ? landingFaqJsonLd(items, pageUrl) : null;
+  const jsonLdHtml = jsonLd ? JSON.stringify(jsonLd).replace(/</g, "\\u003c") : "";
   console.log(
     "SeenShot site: LandingFaq items=" + items.length +
-      " pageUrl=" + pageUrl
+      " pageUrl=" + pageUrl +
+      " emitJsonLd=" + String(emitJsonLd)
   );
-  console.log(
-    "SeenShot site: LandingFaq jsonld type=" + jsonLd["@type"] +
-      " questions=" + jsonLd.mainEntity.length +
-      " chars=" + jsonLdHtml.length
-  );
+  if (jsonLd) {
+    console.log(
+      "SeenShot site: LandingFaq jsonld type=" + jsonLd["@type"] +
+        " questions=" + jsonLd.mainEntity.length +
+        " chars=" + jsonLdHtml.length
+    );
+  }
   items.forEach(function (item, index) {
     console.log(
       "SeenShot site: LandingFaq[" + index + "] id=" + item.id +
@@ -52,7 +63,7 @@ export function LandingFaq({
         Date: 2026-09-05
         Related: [AT-0566] content/landing-faq.ts:landingFaqJsonLd, [AT-0565] components/LandingFaq.tsx, https://schema.org/FAQPage, https://nextjs.org/docs/app/guides/json-ld
       ─────────────────────────────────────────────────────── */}
-      <JsonLdScript id="faq-jsonld" data={jsonLd} />
+      {jsonLd ? <JsonLdScript id="faq-jsonld" data={jsonLd} /> : null}
       <h2 id="faq">FAQ</h2>
       {items.map((item) => (
         <details key={item.id} id={item.id} name="faq">

@@ -122,6 +122,10 @@ export function startPosthog() {
             " defaultPrevented=" + event.defaultPrevented +
             " button=" + event.button
         );
+        if (event.defaultPrevented) {
+          console.log("SeenShot posthog: download capture skipped, click opened Create account");
+          return;
+        }
         captureDownload(link);
       },
       true

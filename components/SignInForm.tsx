@@ -1,22 +1,44 @@
 // ─── Ariadne's Thread [AT-0427] ─────────────────────
-// What: Identity Toolkit form as a Server Component; submit is cancelled in startSignin
-// Why:  HTML used onsubmit="return false"; App Router pages must SSR without event handlers
+// What: Identity Toolkit form as a Server Component. submit is cancelled in startSignin
+// Why:  HTML used onsubmit="return false". App Router pages must SSR without event handlers
 // Date: 2026-09-03
 // Related: [AT-0016] public/signin.html, [AT-0010] lib/client/signin.ts, [AT-0430] components/ClientBoot.tsx
 // ─────────────────────────────────────────────────────
 
-export function SignInForm() {
-  return (
-<main className="page page-auth">
+// ─── Ariadne's Thread [AT-0683] ─────────────────────
+// What: Allow SignInForm without page-auth main, and SSR Create account in the Download modal
+// Why:  Public Download opens #signup-modal. Duplicate #email ids must not exist on /signin
+// Date: 2026-10-02
+// Related: [AT-0680] components/SignupModal.tsx, [AT-0427] components/SignInForm.tsx:SignInForm
+// ─────────────────────────────────────────────────────
+export function SignInForm({
+  embedded = false,
+  initialMode = "signin",
+}: {
+  embedded?: boolean
+  initialMode?: "signin" | "create"
+}) {
+  const create = initialMode === "create"
+  console.log(
+    "SeenShot site: SignInForm embedded=" + String(embedded) +
+      " initialMode=" + initialMode
+  )
+  const form = (
     <form className="auth-form card" action="#" method="post">
-      <h2 id="form-title">Sign In</h2>
+      <h2 id="form-title">{create ? "Create account" : "Sign In"}</h2>
       {/* ─── Ariadne's Thread [AT-0376] ─────────────────────
         What: Restore Sign in with Google chrome and drive it from Firebase Auth popup
-        Why:  GIS Token model failed origin_mismatch; Google must go through Firebase Auth
+        Why:  GIS Token model failed origin_mismatch. Google must go through Firebase Auth
         Date: 2026-08-29
         Related: [AT-0376] public/js/signin.js:bindGoogleButton, [AT-0333] public/css/site.css:.google-auth, https://firebase.google.com/docs/auth/web/google-signin
       ─────────────────────────────────────────────────────── */}
-      <button type="button" id="google-auth" className="google-auth" aria-label="Sign in with Google" disabled={true}>
+      <button
+        type="button"
+        id="google-auth"
+        className="google-auth"
+        aria-label={create ? "Sign up with Google" : "Sign in with Google"}
+        disabled={true}
+      >
         <span className="google-auth-g-plate" aria-hidden="true">
           <svg className="google-auth-g" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="20" height="20">
             <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path>
@@ -26,7 +48,7 @@ export function SignInForm() {
             <path fill="none" d="M0 0h48v48H0z"></path>
           </svg>
         </span>
-        <span id="google-auth-label">Sign in with Google</span>
+        <span id="google-auth-label">{create ? "Sign up with Google" : "Sign in with Google"}</span>
       </button>
       <label htmlFor="email">Email</label>
       <input id="email" name="email" type="email" inputMode="email" autoComplete="email" autoCapitalize="none" spellCheck={false} placeholder="name@example.com" />
@@ -37,19 +59,30 @@ export function SignInForm() {
         Date: 2026-08-27
         Related: [AT-0010] public/js/signin.js:generatePassword, [AT-0028] public/js/signin.js:setMode
       ─────────────────────────────────────────────────────── */}
-      <div className="password-field" id="password-field">
-        <input id="password" name="password" type="password" autoComplete="current-password" spellCheck={false} autoCapitalize="none" />
+      <div className="password-field has-generate" id="password-field">
+        <input
+          id="password"
+          name="password"
+          type="password"
+          autoComplete={create ? "new-password" : "current-password"}
+          spellCheck={false}
+          autoCapitalize="none"
+        />
         {/* ─── Ariadne's Thread [AT-0345] ─────────────────────
           What: Pin Forgot password inside #password-field with the Generate password slot
           Why:  Sign In must show Forgot in the password input, not under the field
           Date: 2026-08-28
           Related: [AT-0031] public/signin.html, [AT-0025] public/signin.html:#forgot, [AT-0028] public/js/signin.js:setMode
         ─────────────────────────────────────────────────────── */}
-        <button className="generate-password" type="button" id="forgot">Forgot password</button>
-        <button className="generate-password" type="button" id="generate-password" hidden={true}>Generate password</button>
+        <button className="generate-password" type="button" id="forgot" hidden={create}>
+          Forgot password
+        </button>
+        <button className="generate-password" type="button" id="generate-password" hidden={!create}>
+          Generate password
+        </button>
         {/* ─── Ariadne's Thread [AT-0032] ─────────────────────
           What: Eye button toggles password visibility
-          Why:  The field stays type=password; Generate must not turn it into a text field
+          Why:  The field stays type=password. Generate must not turn it into a text field
           Date: 2026-08-27
           Related: [AT-0031] public/js/signin.js:generatePassword, [AT-0010] public/js/signin.js:setPasswordVisible
         ─────────────────────────────────────────────────────── */}
@@ -65,16 +98,23 @@ export function SignInForm() {
           </svg>
         </button>
       </div>
-      <button className="download" type="button" id="primary">Sign In</button>
+      <button className="download" type="button" id="primary">
+        {create ? "Create account" : "Sign In"}
+      </button>
       {/* ─── Ariadne's Thread [AT-0028] ─────────────────────
         What: Create account is a link to /signup on the same Identity Toolkit form
-        Why:  Create account must have its own URL; the form is still signin.js
+        Why:  Create account must have its own URL. the form is still signin.js
         Date: 2026-08-28
         Related: [AT-0326] public/js/signin.js:pathIsSignup, [AT-0325] src/index.ts:fetch, [AT-0008] public/js/auth.js:signUpEmail
       ─────────────────────────────────────────────────────── */}
-      <a className="flat create-account" id="switch" href="/signup">Create account</a>
+      <a className="flat create-account" id="switch" href={create ? "/signin" : "/signup"}>
+        {create ? "Sign In" : "Create account"}
+      </a>
       <p id="status" className="meta"></p>
     </form>
-  </main>
-  );
+  )
+  if (embedded) {
+    return form
+  }
+  return <main className="page page-auth">{form}</main>
 }

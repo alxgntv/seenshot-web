@@ -37,7 +37,8 @@ export function TopNav({
   console.log(
     "SeenShot site: TopNav pricingHref=/#pricing landing=" + Boolean(landing) +
       " oauth=" + Boolean(oauth) +
-      " signOut=" + Boolean(signOut)
+      " signOut=" + Boolean(signOut) +
+      " accountMenu=" + String(Boolean(signOut) && !oauth)
   )
   const authNav = (
     <nav>
@@ -54,11 +55,6 @@ export function TopNav({
       <a id="nav-auth" href="/signin">
         Sign In
       </a>
-      {signOut ? (
-        <button className="sign-out" type="button" id="sign-out" hidden>
-          Sign Out
-        </button>
-      ) : null}
     </nav>
   );
   return (
@@ -93,10 +89,48 @@ export function TopNav({
         )}
       </a>
       {oauth ? null : (
-        <details className="topnav-menu">
-          <summary>Menu</summary>
-          {authNav}
-        </details>
+        <div className="topnav-end">
+          <details className="topnav-menu">
+            <summary>Menu</summary>
+            {authNav}
+          </details>
+          {/* ─── Ariadne's Thread [AT-0705] ─────────────────────
+            What: Put signed-in Sign Out behind an avatar details dropdown
+            Why:  Header must show a user avatar, not a Sign Out label, until the menu opens
+            Date: 2026-10-02
+            Related: [AT-0705] lib/client/nav.ts:setAccountMenu, [AT-0009] lib/client/nav.ts:paint
+          ─────────────────────────────────────────────────────── */}
+          {signOut ? (
+            <details className="nav-account" id="nav-account" hidden>
+              <summary className="nav-account-summary" aria-label="Account">
+                <img
+                  id="nav-avatar"
+                  className="nav-avatar"
+                  alt=""
+                  width={36}
+                  height={36}
+                  hidden
+                  referrerPolicy="no-referrer"
+                />
+                <span id="nav-avatar-fallback" className="nav-avatar-fallback" hidden></span>
+              </summary>
+              <div className="nav-account-panel">
+                {/* ─── Ariadne's Thread [AT-0706] ─────────────────────
+                  What: Put Cabinet first in the avatar dropdown, then Sign Out
+                  Why:  Signed-in header menu must open /space/ before the sign-out action
+                  Date: 2026-10-02
+                  Related: [AT-0705] components/SiteChrome.tsx:#nav-account, [AT-0009] lib/client/nav.ts:paint
+                ─────────────────────────────────────────────────────── */}
+                <a id="nav-cabinet" className="nav-account-link" href="/space/">
+                  Cabinet
+                </a>
+                <button className="sign-out" type="button" id="sign-out">
+                  Sign Out
+                </button>
+              </div>
+            </details>
+          ) : null}
+        </div>
       )}
     </header>
   );

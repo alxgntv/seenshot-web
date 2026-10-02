@@ -13,13 +13,51 @@ import { SeenShotAuth } from "./auth";
    Related: [AT-0008] auth.js, app→AccountSignInPanel.cpp
 ─────────────────────────────────────────────────────── */
 
-let started = false;
-export function startSignin() {
-  if (started) {
-    console.warn("SeenShot startSignin: start ignored, already started");
-    return;
+let started = false
+let isModalForm = false
+let applyModalMode = null
+
+// ─── Ariadne's Thread [AT-0682] ─────────────────────
+// What: Bind Identity Toolkit in #signup-modal without redirecting the current page
+// Why:  Public Download opens Create account in a dialog. resumeIfSignedIn must not kick the landing to /space/
+// Date: 2026-10-02
+// Related: [AT-0681] lib/client/signup-modal.ts:openSignupModal, [AT-0010] lib/client/signin.ts:startSignin
+// ─────────────────────────────────────────────────────
+export function setSigninMode(next) {
+  const mode = next === "create" ? "create" : "signin"
+  console.log(
+    "SeenShot signin: setSigninMode next=" + mode +
+      " started=" + started +
+      " modal=" + isModalForm +
+      " hasApply=" + Boolean(applyModalMode)
+  )
+  if (applyModalMode) {
+    applyModalMode(mode)
+    return
   }
-  started = true;
+  console.warn("SeenShot signin: setSigninMode ignored, form not bound")
+}
+
+export function startSignin(options) {
+  const opts = options || {}
+  isModalForm = Boolean(opts.modal)
+  const skipResume = Boolean(opts.skipResume) || isModalForm
+  const requestedMode = opts.mode === "create" || opts.mode === "signin" ? opts.mode : ""
+  console.log(
+    "SeenShot signin: start modal=" + isModalForm +
+      " skipResume=" + skipResume +
+      " requestedMode=" + requestedMode +
+      " started=" + started +
+      " path=" + (typeof location !== "undefined" ? location.pathname : "")
+  )
+  if (started) {
+    console.warn("SeenShot startSignin: start ignored, already started")
+    if (requestedMode) {
+      setSigninMode(requestedMode)
+    }
+    return
+  }
+  started = true
 
     const emailInput = document.getElementById("email");
     const passwordInput = document.getElementById("password");
@@ -34,6 +72,38 @@ export function startSignin() {
     const googleAuth = document.getElementById("google-auth");
     const googleAuthLabel = document.getElementById("google-auth-label");
     const authForm = document.querySelector(".auth-form");
+    console.log(
+      "SeenShot signin: nodes email=" + Boolean(emailInput) +
+        " password=" + Boolean(passwordInput) +
+        " field=" + Boolean(passwordField) +
+        " generate=" + Boolean(generateBtn) +
+        " toggle=" + Boolean(togglePassword) +
+        " status=" + Boolean(status) +
+        " title=" + Boolean(title) +
+        " forgot=" + Boolean(forgot) +
+        " primary=" + Boolean(primary) +
+        " switch=" + Boolean(switchBtn) +
+        " google=" + Boolean(googleAuth) +
+        " form=" + Boolean(authForm) +
+        " modal=" + isModalForm
+    )
+    if (
+      !emailInput ||
+      !passwordInput ||
+      !passwordField ||
+      !generateBtn ||
+      !togglePassword ||
+      !status ||
+      !title ||
+      !forgot ||
+      !primary ||
+      !switchBtn ||
+      !authForm
+    ) {
+      started = false
+      console.error("SeenShot signin: missing form nodes, abort bind")
+      return
+    }
     const buttons = [forgot, primary, switchBtn, generateBtn, togglePassword, googleAuth];
     let inFlight = false;
     let mode = "signin";
@@ -224,8 +294,10 @@ export function startSignin() {
       passwordInput.name = "password";
       if (mode === "create") {
         title.textContent = "Create account";
-        document.title = "Create account - SeenShot";
-        console.log("SeenShot signin: document.title=" + document.title + " mode=create");
+        if (!isModalForm) {
+          document.title = "Create account - SeenShot";
+        }
+        console.log("SeenShot signin: document.title=" + document.title + " mode=create modal=" + isModalForm);
         primary.textContent = "Create account";
         switchBtn.textContent = "Sign In";
         if (switchBtn.tagName === "A") {
@@ -237,8 +309,10 @@ export function startSignin() {
         passwordInput.autocomplete = "new-password";
       } else {
         title.textContent = "Sign In";
-        document.title = "Sign In - SeenShot";
-        console.log("SeenShot signin: document.title=" + document.title + " mode=sign-in");
+        if (!isModalForm) {
+          document.title = "Sign In - SeenShot";
+        }
+        console.log("SeenShot signin: document.title=" + document.title + " mode=sign-in modal=" + isModalForm);
         primary.textContent = "Sign In";
         switchBtn.textContent = "Create account";
         if (switchBtn.tagName === "A") {
@@ -269,9 +343,11 @@ export function startSignin() {
           " passwordFieldId=" + passwordField.id +
           " emailType=" + emailInput.type +
           " passwordType=" + passwordInput.type +
-          " googleLabel=" + googleText
+          " googleLabel=" + googleText +
+          " modal=" + isModalForm
       );
     }
+    applyModalMode = setMode
 
     // ─── Ariadne's Thread [AT-0044] ─────────────────────
     // What: Honor same-origin next=/oauth/authorize after sign-in
@@ -455,6 +531,17 @@ export function startSignin() {
       if (inFlight) {
         event.preventDefault();
         console.warn("SeenShot signin: switch ignored, request in flight href=" + (switchBtn.getAttribute("href") || ""));
+        return;
+      }
+      if (isModalForm) {
+        event.preventDefault();
+        const nextMode = mode === "create" ? "signin" : "create";
+        console.log(
+          "SeenShot signin: modal switch from=" + mode +
+            " to=" + nextMode +
+            " href=" + (switchBtn.getAttribute("href") || "")
+        );
+        setMode(nextMode);
       }
     });
 
@@ -549,12 +636,22 @@ export function startSignin() {
     // ─────────────────────────────────────────────────────
     (async function resumeIfSignedIn() {
       const session = SeenShotAuth.readSession();
+      const bootMode = requestedMode || (pathIsSignup() ? "create" : "signin");
       console.log(
         "SeenShot signin: boot hasRefresh=" + Boolean(session.refreshToken) +
-          " uid=" + (session.uid || "")
+          " uid=" + (session.uid || "") +
+          " skipResume=" + skipResume +
+          " bootMode=" + bootMode +
+          " modal=" + isModalForm
       );
+      if (skipResume) {
+        setMode(bootMode);
+        startGoogleButton();
+        console.log("SeenShot signin: skip resume, stay on host page mode=" + bootMode);
+        return;
+      }
       if (!session.refreshToken) {
-        setMode(pathIsSignup() ? "create" : "signin");
+        setMode(bootMode);
         startGoogleButton();
         finishEmailLink();
         return;
@@ -568,7 +665,7 @@ export function startSignin() {
         const code = error && error.message ? error.message : "AUTH_REFRESH_FAILED";
         console.warn("SeenShot signin: existing session failed code=" + code, error);
         show(code, true);
-        setMode(pathIsSignup() ? "create" : "signin");
+        setMode(bootMode);
         startGoogleButton();
         finishEmailLink();
       }

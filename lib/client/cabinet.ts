@@ -6,6 +6,7 @@
    Related: [AT-0008] public/js/auth.js
 ─────────────────────────────────────────────────────── */
 import { SeenShotAuth } from "./auth";
+import { paintPaidCabinet } from "./paid-ui";
 /* ─── Ariadne's Thread [AT-0011] ─────────────────────
    What: Pinterest masonry of the signed-in user's D1+R2 shots
    Why:  Cabinet is the cloud folder from the Mac app
@@ -35,8 +36,62 @@ export function startCabinet() {
     // ─────────────────────────────────────────────────────
     function setEmptyVisible(visible) {
       emptyWrap.hidden = !visible;
+      if (feed) {
+        feed.hidden = visible
+      }
       const empty = document.getElementById("empty");
       const wrap = latestDownload ? latestDownload.closest(".download-wrap") : null;
+      // ─── Ariadne's Thread [AT-0691] ─────────────────────
+      // What: Re-paint cabinet Download after empty-card toggle
+      // Why:  Empty vs feed must not unhide the DMG for a free plan
+      // Date: 2026-10-02
+      // Related: [AT-0687] lib/client/paid-ui.ts:paintPaidCabinet, [AT-0415] lib/client/cabinet.ts:setEmptyVisible
+      // ─────────────────────────────────────────────────────
+      paintPaidCabinet()
+      // ─── Ariadne's Thread [AT-0703] ─────────────────────
+      // What: Play empty-wrap landing videos when the feed has no shots
+      // Why:  Hidden preload=none demos stay paused until the empty presentation is shown
+      // Date: 2026-10-02
+      // Related: [AT-0703] components/SpaceMain.tsx:#empty-wrap, [AT-0459] components/LandingMain.tsx:.hero-shot
+      // ─────────────────────────────────────────────────────
+      const videos = emptyWrap.querySelectorAll("video")
+      for (let i = 0; i < videos.length; i += 1) {
+        const video = videos[i]
+        if (visible) {
+          const play = video.play()
+          if (play && typeof play.catch === "function") {
+            play.catch(function (err) {
+              console.warn(
+                "SeenShot cabinet: empty video play failed index=" + i +
+                  " src=" + (video.currentSrc || ""),
+                err
+              )
+            })
+          }
+        } else {
+          video.pause()
+        }
+        const source = video.querySelector("source")
+        const src =
+          video.currentSrc ||
+          (source ? source.getAttribute("src") || "" : "") ||
+          video.getAttribute("src") ||
+          ""
+        console.log(
+          "SeenShot cabinet: empty video[" + i + "] visible=" + visible +
+            " paused=" + video.paused +
+            " src=" + src
+        )
+      }
+      const cabinetDownload = document.getElementById("cabinet-download");
+      console.log(
+        "SeenShot cabinet: cabinet-download hidden=" + (cabinetDownload ? String(cabinetDownload.hidden) : "missing") +
+          " emptyVisible=" + visible +
+          " feedHidden=" + (feed ? String(feed.hidden) : "missing") +
+          " emptyClass=" + (empty ? empty.className : "") +
+          " landing=" + Boolean(empty && empty.classList.contains("landing")) +
+          " videos=" + videos.length
+      );
       console.log(
         "SeenShot cabinet: emptyVisible=" + visible +
           " emptyWrapHidden=" + emptyWrap.hidden +
@@ -161,7 +216,7 @@ export function startCabinet() {
       feed.innerHTML = "";
       if (shots.length === 0) {
         setEmptyVisible(true);
-        console.log("SeenShot cabinet: empty feed, show capture hint");
+        console.log("SeenShot cabinet: empty feed, show landing presentation");
         return;
       }
       setEmptyVisible(false);
@@ -277,6 +332,18 @@ export function startCabinet() {
     } else {
       console.log("SeenShot cabinet: upgrade button missing");
     }
+    const appsumo = document.getElementById("buy-appsumo");
+    if (appsumo) {
+      appsumo.addEventListener("click", function () {
+        console.log(
+          "SeenShot cabinet: appsumo click href=" + (appsumo.getAttribute("href") || "") +
+            " target=" + (appsumo.getAttribute("target") || "")
+        );
+      });
+      console.log("SeenShot cabinet: appsumo link bound href=" + (appsumo.getAttribute("href") || ""));
+    } else {
+      console.log("SeenShot cabinet: appsumo link missing");
+    }
 
     async function startCheckout(button) {
       if (button.dataset.busy === "1") {
@@ -285,7 +352,10 @@ export function startCabinet() {
       }
       button.dataset.busy = "1";
       button.disabled = true;
-      console.log("SeenShot cabinet: checkout start");
+      console.log(
+        "SeenShot cabinet: checkout start label=" + (button.textContent || "").trim() +
+          " product=member"
+      );
       try {
         await SeenShotAuth.ensureIdToken();
         const response = await SeenShotAuth.api("/api/billing/checkout", {

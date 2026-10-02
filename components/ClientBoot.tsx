@@ -108,6 +108,23 @@ export function ClientBoot() {
   useEffect(() => {
     let cancelled = false;
     async function boot() {
+      const path = normalizePath(location.pathname) || "/";
+      console.log("SeenShot site: ClientBoot path=" + path);
+      const skipSignupModal =
+        path === "/signin" || path === "/signup" || path === "/oauth/authorize"
+      if (!skipSignupModal) {
+        // ─── Ariadne's Thread [AT-0684] ─────────────────────
+        // What: Bind public Download clicks to the Create account dialog on product and share pages
+        // Why:  Unsigned Download must not start the DMG. Capture listener is registered before PostHog
+        // Date: 2026-10-02
+        // Related: [AT-0681] lib/client/signup-modal.ts:startSignupModal, [AT-0430] components/ClientBoot.tsx
+        // ─────────────────────────────────────────────────────
+        const { startSignupModal } = await import("@/lib/client/signup-modal")
+        startSignupModal()
+        console.log("SeenShot site: ClientBoot signup modal bound path=" + path)
+      } else {
+        console.log("SeenShot site: ClientBoot skip signup modal path=" + path)
+      }
       const { startPosthog } = await import("@/lib/client/posthog");
       const { startSupport } = await import("@/lib/client/support");
       if (cancelled) {
@@ -115,8 +132,6 @@ export function ClientBoot() {
       }
       startPosthog();
       startSupport();
-      const path = normalizePath(location.pathname) || "/";
-      console.log("SeenShot site: ClientBoot path=" + path);
       if (path.startsWith("/screenshot/")) {
         const shareBoot = document.getElementById("share-boot");
         if (shareBoot) {
@@ -182,10 +197,18 @@ export function ClientBoot() {
         return;
       }
       if (path === "/space") {
+        // ─── Ariadne's Thread [AT-0703] ─────────────────────
+        // What: Boot startPricing on /space with cabinet and releases
+        // Why:  Empty cabinet now renders homepage Pricing cards. Buy must open Stripe checkout
+        // Date: 2026-10-02
+        // Related: [AT-0703] components/SpaceMain.tsx:#empty-wrap, [AT-0551] lib/client/pricing.ts:startPricing
+        // ─────────────────────────────────────────────────────
         const { startCabinet } = await import("@/lib/client/cabinet");
         const { startReleases } = await import("@/lib/client/releases");
+        const { startPricing } = await import("@/lib/client/pricing");
         startCabinet();
         startReleases();
+        startPricing();
         startLegal();
         return;
       }

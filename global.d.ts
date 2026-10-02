@@ -1,5 +1,11 @@
 export {};
 
+declare module "react" {
+  interface ImgHTMLAttributes<T> {
+    description?: string
+  }
+}
+
 declare global {
   interface Window {
     SeenShotAuth?: unknown;

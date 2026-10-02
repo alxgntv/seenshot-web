@@ -7,7 +7,57 @@ import { JsonLdScript } from "./JsonLdScript";
 import { PricingCards } from "./PricingCards";
 import { WallOfLove } from "./WallOfLove";
 
-export function LandingMain() {
+type LandingImageMeta = {
+  title: string
+  description: string
+}
+
+function landingShotAttrs(
+  fallbackAlt: string,
+  imageMeta?: LandingImageMeta,
+) {
+  if (!imageMeta) {
+    console.log("SeenShot site: landingShotAttrs fallbackAlt=" + fallbackAlt)
+    return { alt: fallbackAlt }
+  }
+  console.log(
+    "SeenShot site: landingShotAttrs pageTitle=" + imageMeta.title +
+      " fallbackAlt=" + fallbackAlt
+  )
+  return {
+    alt: imageMeta.title,
+    title: imageMeta.title,
+    description: imageMeta.description,
+  }
+}
+
+// ─── Ariadne's Thread [AT-0703] ─────────────────────
+// What: Let LandingMain omit Compare and render as a div with page image meta
+// Why:  Empty cabinet must reuse the homepage presentation without the comparison table
+// Date: 2026-10-02
+// Related: [AT-0703] components/SpaceMain.tsx:#empty-wrap, [AT-0587] components/LandingMain.tsx:LandingCompare
+// ─────────────────────────────────────────────────────
+export function LandingMain({
+  compare = true,
+  jsonLd = true,
+  as = "main",
+  rootId,
+  imageMeta,
+}: {
+  compare?: boolean
+  jsonLd?: boolean
+  as?: "main" | "div"
+  rootId?: string
+  imageMeta?: LandingImageMeta
+} = {}) {
+  const Root = as
+  console.log(
+    "SeenShot site: LandingMain as=" + as +
+      " rootId=" + (rootId || "") +
+      " compare=" + String(compare) +
+      " jsonLd=" + String(jsonLd) +
+      " imageTitle=" + (imageMeta ? imageMeta.title : "")
+  )
   return (
     <>
     {/* ─── Ariadne's Thread [AT-0568] ─────────────────────
@@ -16,8 +66,8 @@ export function LandingMain() {
       Date: 2026-09-05
       Related: [AT-0568] content/site-jsonld.ts:landingAppJsonLd, [AT-0569] components/JsonLdScript.tsx, https://schema.org/SoftwareApplication
     ─────────────────────────────────────────────────────── */}
-    <JsonLdScript id="app-jsonld" data={landingAppJsonLd()} />
-<main className="landing">
+    {jsonLd ? <JsonLdScript id="app-jsonld" data={landingAppJsonLd()} /> : null}
+<Root className="landing" id={rootId}>
     <section className="hero">
       {/* ─── Ariadne's Thread [AT-0304] ─────────────────────
         What: Drop the 126px SeenShot.png from .hero
@@ -99,7 +149,7 @@ export function LandingMain() {
       poster="/hero.jpg"
       width={1264}
       height={720}
-      aria-label="SeenShot"
+      aria-label={imageMeta ? imageMeta.title : "SeenShot"}
     >
       {/* ─── Ariadne's Thread [AT-0462] ─────────────────────
         What: Replace the landing hero source with sharing-demo-3.mp4
@@ -134,7 +184,7 @@ export function LandingMain() {
         Date: 2026-09-03
         Related: [AT-0272] components/LandingMain.tsx:.founder img, [AT-0266] components/LandingMain.tsx:.founder img
       ─────────────────────────────────────────────────────── */}
-      <img src="/alex-ign.png?v=0461" alt="Alex Ign" width="72" height="72" loading="lazy" decoding="async" />
+      <img src="/alex-ign.png?v=0461" width="72" height="72" loading="lazy" decoding="async" {...landingShotAttrs("Alex Ign", imageMeta)} />
       <div className="founder-copy">
         {/* ─── Ariadne's Thread [AT-0543] ─────────────────────
           What: Drop the landing founder handle link
@@ -200,7 +250,7 @@ export function LandingMain() {
           <p>Highlight area for the agent what it should fix.</p>
         </div>
         <div className="bento-shot-wrap">
-          <img className="bento-shot" src="/bento/03-square.jpg" alt="Square" loading="lazy" decoding="async" />
+          <img className="bento-shot" src="/bento/03-square.jpg" loading="lazy" decoding="async" {...landingShotAttrs("Square", imageMeta)} />
         </div>
       </article>
       <article className="bento-card wide">
@@ -221,7 +271,7 @@ export function LandingMain() {
             poster="/bento/05-blur.jpg"
             width={1134}
             height={720}
-            aria-label="Blur"
+            aria-label={imageMeta ? imageMeta.title : "Blur"}
           >
             <source src="/auto-blur-demo-2.mp4" type="video/mp4" />
           </video>
@@ -255,7 +305,7 @@ export function LandingMain() {
       ─────────────────────────────────────────────────────── */}
       <article className="bento-card narrow">
         <div className="bento-shot-wrap">
-          <img className="bento-shot" src="/bento/08-share.jpg" alt="Share" loading="lazy" decoding="async" />
+          <img className="bento-shot" src="/bento/08-share.jpg" loading="lazy" decoding="async" {...landingShotAttrs("Share", imageMeta)} />
         </div>
         {/* ─── Ariadne's Thread [AT-0487] ─────────────────────
           What: Set Share bento h3 to One-click Share and p to Supports all AI Agents
@@ -275,7 +325,7 @@ export function LandingMain() {
       </article>
       <article className="bento-card wide">
         <div className="bento-shot-wrap">
-          <img className="bento-shot" src="/bento/01-photo.jpg" alt="Photo" loading="lazy" decoding="async" />
+          <img className="bento-shot" src="/bento/01-photo.jpg" loading="lazy" decoding="async" {...landingShotAttrs("Photo", imageMeta)} />
         </div>
         {/* ─── Ariadne's Thread [AT-0490] ─────────────────────
           What: Set Photo bento h3 to add your selfie at screen shot
@@ -294,7 +344,7 @@ export function LandingMain() {
       </article>
       <article className="bento-card narrow">
         <div className="bento-shot-wrap">
-          <img className="bento-shot" src="/bento/02-steps.jpg" alt="Steps" loading="lazy" decoding="async" />
+          <img className="bento-shot" src="/bento/02-steps.jpg" loading="lazy" decoding="async" {...landingShotAttrs("Steps", imageMeta)} />
         </div>
         {/* ─── Ariadne's Thread [AT-0447] ─────────────────────
           What: Set Steps bento h3 to Show steps
@@ -347,7 +397,7 @@ export function LandingMain() {
             Date: 2026-09-04
             Related: [AT-0230] components/LandingMain.tsx:.bento-shot, [AT-0461] components/LandingMain.tsx:.founder img
           ─────────────────────────────────────────────────────── */}
-          <img className="bento-shot" src="/bento/06-background.jpg?v=0493" alt="Background" loading="lazy" decoding="async" />
+          <img className="bento-shot" src="/bento/06-background.jpg?v=0493" loading="lazy" decoding="async" {...landingShotAttrs("Background", imageMeta)} />
         </div>
       </article>
       {/* ─── Ariadne's Thread [AT-0082] ─────────────────────
@@ -375,14 +425,14 @@ export function LandingMain() {
       Date: 2026-09-03
       Related: [AT-0474] content/wall-of-love.ts, [AT-0476] app/site.css:.wall-of-love
     ─────────────────────────────────────────────────────── */}
-    <WallOfLove />
+    <WallOfLove imageMeta={imageMeta} />
     {/* ─── Ariadne's Thread [AT-0587] ─────────────────────
       What: Render homepage Compare through LandingCompare
       Why:  Unique SSR landings must reuse the same matrix without a second Compare table
       Date: 2026-09-05
       Related: [AT-0586] components/LandingCompare.tsx:LandingCompare, [AT-0521] components/LandingMain.tsx:.compare-section
     ─────────────────────────────────────────────────────── */}
-    <LandingCompare />
+    {compare ? <LandingCompare /> : null}
     {/* ─── Ariadne's Thread [AT-0562] ─────────────────────
       What: Put landing Pricing cards back after Compare
       Why:  Homepage must show Free, Member, Lifetime, and Corporate as before the /pricing split
@@ -397,8 +447,8 @@ export function LandingMain() {
       Date: 2026-09-05
       Related: [AT-0565] components/LandingFaq.tsx, [AT-0562] components/LandingMain.tsx:#pricing
     ─────────────────────────────────────────────────────── */}
-    <LandingFaq />
-  </main>
+    <LandingFaq emitJsonLd={jsonLd} />
+  </Root>
     </>
   );
 }

@@ -26,20 +26,23 @@ export function DownloadPill({
   id,
   href = "/download/arm64",
   label = DEFAULT_DOWNLOAD_LABEL,
+  hidden = false,
 }: {
   id: string;
   href?: string;
   label?: string;
+  hidden?: boolean
 }) {
   const customLabel = label !== DEFAULT_DOWNLOAD_LABEL ? label : undefined;
   console.log(
     "SeenShot site: DownloadPill id=" + id +
       " href=" + href +
       " label=" + label +
-      " dataLabel=" + (customLabel || "")
+      " dataLabel=" + (customLabel || "") +
+      " hidden=" + String(hidden)
   );
   return (
-    <a id={id} className="download" href={href} data-label={customLabel}>
+    <a id={id} className="download" href={href} data-label={customLabel} hidden={hidden}>
       <svg
         className="download-apple"
         viewBox="0 0 24 24"

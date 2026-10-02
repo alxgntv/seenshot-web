@@ -1,3 +1,9 @@
+import { DownloadPill } from "@/components/DownloadPill"
+import { LandingMain } from "@/components/LandingMain"
+
+const SPACE_IMAGE_TITLE = "My Screenshots - SeenShot"
+const SPACE_IMAGE_DESCRIPTION = "Hit cmd+shift+2, annotate, insert in to your agent. Free screenshot app for macOS."
+
 export function SpaceMain() {
   return (
 <main className="page">
@@ -25,13 +31,36 @@ export function SpaceMain() {
         Related: [AT-0282] public/space/index.html, [AT-0286] public/css/site.css:.cabinet-actions
       ─────────────────────────────────────────────────────── */}
       <div className="cabinet-actions" role="group" aria-label="Cabinet actions">
-        {/* ─── Ariadne's Thread [AT-0289] ─────────────────────
-          What: Set Upgrade to Pro label to Upgrade to Pro · $29 year
-          Why:  Cabinet checkout pill must show the Member yearly price
-          Date: 2026-08-27
-          Related: [AT-0282] public/space/index.html, [AT-0283] public/js/nav.js:paint
+        {/* ─── Ariadne's Thread [AT-0685] ─────────────────────
+          What: Keep a cabinet Download pill in .cabinet-actions for signed-in users
+          Why:  App DMG is only after registration. Empty-card CTA is hidden once shots exist
+          Date: 2026-10-02
+          Related: [AT-0415] components/SpaceMain.tsx:#latest-download, [AT-0679] lib/site.ts:serveLatestMacDmg
         ─────────────────────────────────────────────────────── */}
-        <button type="button" id="upgrade-pro" className="download" hidden={true}>Upgrade to Pro · $29 year</button>
+        {/* ─── Ariadne's Thread [AT-0702] ─────────────────────
+          What: Default cabinet Download label is Download. ARM
+          Why:  Signed-in CTA must name the Mac chip after the period. Chip detect can switch it to Download. x86
+          Date: 2026-10-02
+          Related: [AT-0685] components/SpaceMain.tsx:#cabinet-download, [AT-0702] lib/client/releases.ts:paintDownloadHref
+        ─────────────────────────────────────────────────────── */}
+        <DownloadPill id="cabinet-download" label="Download. ARM" hidden={true} />
+        {/* ─── Ariadne's Thread [AT-0689] ─────────────────────
+          What: Cabinet Pay with card and Buy on AppSumo sit next to Download
+          Why:  Free accounts must buy Member before the DMG. Card uses Polar checkout. AppSumo uses the live deal
+          Date: 2026-10-02
+          Related: [AT-0687] lib/client/paid-ui.ts:paintPaidCabinet, [AT-0284] lib/client/cabinet.ts:startCheckout
+        ─────────────────────────────────────────────────────── */}
+        <button type="button" id="upgrade-pro" className="download" hidden={true}>Pay with card · $29 year</button>
+        <a
+          id="buy-appsumo"
+          className="download"
+          href="https://appsumo.com/products/seenshotapp/"
+          target="_blank"
+          rel="noopener noreferrer"
+          hidden={true}
+        >
+          Buy on AppSumo
+        </a>
         {/* ─── Ariadne's Thread [AT-0431] ─────────────────────
           What: Cabinet Redeem promocode pill next to Upgrade to Pro
           Why:  Signed-in space must open the existing /space/redem Polar code flow
@@ -41,31 +70,23 @@ export function SpaceMain() {
         <a id="redeem-promocode" className="download" href="/space/redem/" hidden={true}>Redeem promocode</a>
       </div>
     </div>
-    {/* ─── Ariadne's Thread [AT-0415] ─────────────────────
-      What: Put cabinet #latest-download first inside #empty, then the Cmd+Shift+2 hint
-      Why:  Download Free for macOS must live in the empty card, not above it
-      Date: 2026-09-03
-      Related: [AT-0414] public/space/index.html:#empty-wrap, [AT-0397] public/index.html:#latest-download
+    {/* ─── Ariadne's Thread [AT-0703] ─────────────────────
+      What: Show the homepage presentation in #empty-wrap when the cabinet feed has no shots
+      Why:  Empty My Screenshots must reuse hero, features, and pricing without the Compare table
+      Date: 2026-10-02
+      Related: [AT-0703] components/LandingMain.tsx:LandingMain, [AT-0415] lib/client/cabinet.ts:setEmptyVisible
     ─────────────────────────────────────────────────────── */}
     <div id="empty-wrap" className="empty-wrap" hidden={true}>
-      <div id="empty" className="empty">
-        <div className="download-wrap">
-          {/* ─── Ariadne's Thread [AT-0517] ─────────────────────
-            What: Cabinet Download href is /download/arm64
-            Why:  Empty-card CTA must start the latest DMG, not open GitHub Releases
-            Date: 2026-09-05
-            Related: [AT-0515] backend→lib/site.ts:redirectLatestMacDmg, [AT-0415] components/SpaceMain.tsx:#empty
-          ─────────────────────────────────────────────────────── */}
-          <a id="latest-download" className="download" href="/download/arm64">
-            <svg className="download-apple" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" fill="currentColor" width="18" height="18">
-              <path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"></path>
-            </svg>
-            <span className="download-label">Download Free for macOS</span>
-          </a>
-          <p className="download-arch">Apple Silicon (arm64)</p>
-        </div>
-        <p>Create First Screen Shot Cmd + Shift + 2 and share it.</p>
-      </div>
+      <LandingMain
+        as="div"
+        rootId="empty"
+        compare={false}
+        jsonLd={false}
+        imageMeta={{
+          title: SPACE_IMAGE_TITLE,
+          description: SPACE_IMAGE_DESCRIPTION,
+        }}
+      />
     </div>
     <div id="feed" className="feed"></div>
   </main>
